@@ -128,8 +128,6 @@ const POKEMON_INFO: Record<number, IPokemonInfo> = {
   10035: { ko: '메가 리자몽Y',   types: ['fire', 'flying'] },
   10036: { ko: '메가 거북왕',   types: ['water'] },
   10037: { ko: '메가 후딘',     types: ['psychic'] },
-  10038: { ko: '메가 캥카',     types: ['normal'] },
-  10041: { ko: '메가 프테라',   types: ['rock', 'flying'] },
   10042: { ko: '메가 갸라도스', types: ['water', 'dark'] },
   10043: { ko: '메가 뮤츠Y',    types: ['psychic'] },
 };
@@ -142,8 +140,6 @@ const EVOLUTION_CHAINS: number[][] = [
   [63, 64, 65, 10037],         // 캐이시 → 윤겔라 → 후딘 → 메가 후딘
   [129, 130, 10042],           // 잉어킹 → 갸라도스 → 메가 갸라도스
   [150, 10043],                // 뮤츠 → 메가 뮤츠Y
-  [115, 10038],                // 캥카 → 메가 캥카
-  [142, 10041],                // 프테라 → 메가 프테라
 
   // 일반 진화 체인
   [10, 11, 12], [13, 14, 15], [16, 17, 18],
@@ -204,7 +200,7 @@ const GACHA_EXCLUDED = new Set<number>([
   // 2세대/4세대 진화체 (자연 진화로만)
   139, 141, 208, 212, 233, 242, 466, 467, 474,
   // 메가 진화 (자연 진화로만)
-  10033, 10035, 10036, 10037, 10038, 10041, 10042, 10043,
+  10033, 10035, 10036, 10037, 10042, 10043,
   // 단독 합성 결과 (고급 뽑기로만)
   ...RECIPE_RESULTS,
 ]);
@@ -328,16 +324,8 @@ export function getSpriteKey(id: number): string {
   return `pkmn-${id}`;
 }
 
-// 기본 pixel sprite가 이상하거나 없는 경우 베이스 포켓몬으로 폴백
-// (HOME sprite는 해상도가 커서 안 맞음, 일반 pixel 대신 base pokemon 사용)
-const SPRITE_FALLBACK: Record<number, number> = {
-  10038: 115, // 메가 캥카 → 캥카 (메가 스프라이트 깨짐)
-  10041: 142, // 메가 프테라 → 프테라 (메가 스프라이트 깨짐)
-};
-
 export function getSpriteUrl(id: number): string {
-  const actualId = SPRITE_FALLBACK[id] ?? id;
-  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${actualId}.png`;
+  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
 }
 
 export const ALL_POKEMON_IDS: number[] = Object.keys(POKEMON_INFO).map(Number);
