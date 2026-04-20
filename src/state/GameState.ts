@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 
+const DEX_STORAGE_KEY = 'porande-dex';
+
 export class GameState extends Phaser.Events.EventEmitter {
   private _gold: number;
   private _lives: number;
@@ -7,6 +9,7 @@ export class GameState extends Phaser.Events.EventEmitter {
   private _maxWave: number;
   private _isWaveActive = false;
   private _unlockedCols: number;
+  private _dex: Set<number> = new Set();
 
   constructor(opts: { gold: number; lives: number; maxWave: number; unlockedCols: number }) {
     super();
@@ -15,6 +18,38 @@ export class GameState extends Phaser.Events.EventEmitter {
     this._wave = 0;
     this._maxWave = opts.maxWave;
     this._unlockedCols = opts.unlockedCols;
+    this.loadDex();
+  }
+
+  private loadDex() {
+    try {
+      const raw = localStorage.getItem(DEX_STORAGE_KEY);
+      if (raw) {
+        const arr = JSON.parse(raw) as number[];
+        this._dex = new Set(arr);
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  private saveDex() {
+    try {
+      localStorage.setItem(DEX_STORAGE_KEY, JSON.stringify([...this._dex]));
+    } catch {
+      // ignore
+    }
+  }
+
+  addToDex(id: number) {
+    if (this._dex.has(id)) return;
+    this._dex.add(id);
+    this.saveDex();
+    this.emit('dexAdded', id);
+  }
+
+  get dex(): ReadonlySet<number> {
+    return this._dex;
   }
 
   get gold() { return this._gold; }

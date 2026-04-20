@@ -8,7 +8,7 @@ import {
   MAIN_GRID_COLS, isValidCell,
 } from '../game/balance';
 import { RECIPES, IRecipe } from '../data/recipes';
-import { getPokemon, rollRandomPokemonId, rollAdvancedRandomPokemonId, getSpriteKey } from '../data/pokemonData';
+import { getPokemon, rollRandomPokemonId, rollAdvancedRandomPokemonId, getSpriteKey, ALL_POKEMON_IDS } from '../data/pokemonData';
 import { RECIPE_PAGES } from '../data/recipes';
 import { SYNERGY_GROUPS } from '../data/synergies';
 void RECIPES;
@@ -46,6 +46,13 @@ export class GameScene extends Phaser.Scene {
   private recipesPageIndex = 0;
   private lockOverlays: Array<{ col: number; row: number; group: Phaser.GameObjects.GameObject[] }> = [];
   private possibleMatchesUI?: Phaser.GameObjects.Container;
+  private gameSpeed: 1 | 2 | 3 = 1;
+  private isPaused = false;
+  private gameTime = 0;
+  private speedBtnText?: Phaser.GameObjects.Text;
+  private pauseOverlay?: Phaser.GameObjects.Container;
+  private comboCount = 0;
+  private lastKillTime = 0;
 
   constructor() {
     super('Game');
@@ -107,14 +114,88 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard?.on('keydown-RIGHT', () => {
       if (this.recipesContainer) this.shiftRecipesPage(1);
     });
+    // 키보드 단축키
+    this.input.keyboard?.on('keydown-SPACE', () => this.togglePause());
+    this.input.keyboard?.on('keydown-P', () => this.togglePause());
+    this.input.keyboard?.on('keydown-ONE', () => this.setGameSpeed(1));
+    this.input.keyboard?.on('keydown-TWO', () => this.setGameSpeed(2));
+    this.input.keyboard?.on('keydown-THREE', () => this.setGameSpeed(3));
+    this.input.keyboard?.on('keydown-S', () => this.handleSort('attack'));
+    this.input.keyboard?.on('keydown-T', () => this.handleSort('type'));
+    this.input.keyboard?.on('keydown-D', () => this.handleDraw());
+    this.input.keyboard?.on('keydown-F', () => this.handleAdvancedDraw());
+    this.input.keyboard?.on('keydown-W', () => this.handleStartWave());
+    this.input.keyboard?.on('keydown-R', () => {
+      if (this.recipesContainer) this.closeRecipes();
+      else this.openRecipes();
+    });
 
     this.setupDragHandlers();
     this.refreshNextWavePreview();
   }
 
-  update(time: number, deltaMs: number) {
-    this.waveSystem?.update(time, deltaMs);
-    this.combatSystem?.update(time);
+  update(_time: number, deltaMs: number) {
+    if (this.isPaused) return;
+    const scaled = deltaMs * this.gameSpeed;
+    this.gameTime += scaled;
+    this.waveSystem?.update(this.gameTime, scaled);
+    this.combatSystem?.update(this.gameTime);
+    // 콤보 시간 초과 시 리셋
+    if (this.comboCount > 0 && this.gameTime - this.lastKillTime > 2000) {
+      this.comboCount = 0;
+    }
+  }
+
+  private setGameSpeed(speed: 1 | 2 | 3) {
+    this.gameSpeed = speed;
+    this.tweens.timeScale = speed;
+    this.time.timeScale = speed;
+    if (this.speedBtnText) {
+      this.speedBtnText.setText(`${speed}x`);
+    }
+    this.flashMessage(`속도 ${speed}배`, '#66ddff');
+  }
+
+  private togglePause() {
+    this.isPaused = !this.isPaused;
+    if (this.isPaused) {
+      this.tweens.pauseAll();
+      this.showPauseOverlay();
+    } else {
+      this.tweens.resumeAll();
+      this.hidePauseOverlay();
+    }
+  }
+
+  private showPauseOverlay() {
+    if (this.pauseOverlay) return;
+    const c = this.add.container(0, 0).setDepth(3000);
+    const bg = this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.6).setOrigin(0, 0);
+    const text = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2, '⏸ 일시정지\n\nSpace / P 로 재개', {
+      fontFamily: 'sans-serif', fontSize: '32px', color: '#ffffff', align: 'center',
+      stroke: '#000', strokeThickness: 4,
+    }).setOrigin(0.5);
+    c.add([bg, text]);
+    this.pauseOverlay = c;
+  }
+
+  private hidePauseOverlay() {
+    if (this.pauseOverlay) {
+      this.pauseOverlay.destroy();
+      this.pauseOverlay = undefined;
+    }
+  }
+
+  incrementCombo() {
+    this.comboCount += 1;
+    this.lastKillTime = this.gameTime;
+    if (this.comboCount >= 5 && this.comboCount % 5 === 0) {
+      this.flashMessage(`${this.comboCount} 콤보!`, '#ffaa00');
+    }
+  }
+
+  resetCombo() {
+    this.comboCount = 0;
   }
 
   private buildPath(): Phaser.Curves.Path {
@@ -273,11 +354,13 @@ export class GameScene extends Phaser.Scene {
           target.destroy();
           dragged.isMerging = false;
           dragged.setAlpha(1).setScale(cellScale(dragged.col));
+          this.state.addToDex(dragged.pokemon.id);
           this.playLegendaryEffect(dragged);
           this.flashMessage(`이브이 → ${result.eeveeKo}!`, '#7afcc9');
           this.events.emit('gridChanged');
           return;
         }
+        this.state.addToDex(target.pokemon.id);
 
         dragged.destroy();
         if (result.type === 'levelup') this.playLevelUpEffect(target);
@@ -366,6 +449,7 @@ export class GameScene extends Phaser.Scene {
       return;
     }
     const id = roller();
+    this.state.addToDex(id);
     const pokemon = getPokemon(id);
     const cell = this.grid.findEmptyCell()!;
     const { x, y } = cellCenter(cell.col, cell.row);
@@ -561,6 +645,29 @@ export class GameScene extends Phaser.Scene {
 
     makeBtn(attackY, '공격순', 0x1a3a3a, 0x44aaaa, () => this.handleSort('attack'));
     makeBtn(typeY, '타입순', 0x3a1a3a, 0xaa44aa, () => this.handleSort('type'));
+
+    // 속도 조절 버튼 (타입순 아래)
+    const speedY = typeY + 50;
+    const speedRect = this.add.rectangle(TRASH_X, speedY, TRASH_W, 40, 0x1a2a3a, 0.6)
+      .setStrokeStyle(2, 0x66ddff, 0.85)
+      .setInteractive({ useHandCursor: true });
+    const speedLabel = this.add.text(TRASH_X, speedY - 8, '속도', {
+      fontFamily: 'monospace', fontSize: '10px', color: '#ddddee',
+    }).setOrigin(0.5);
+    this.speedBtnText = this.add.text(TRASH_X, speedY + 6, '1x', {
+      fontFamily: 'monospace', fontSize: '12px', color: '#66ddff',
+    }).setOrigin(0.5);
+    speedRect.on('pointerdown', () => {
+      const next = (this.gameSpeed === 3 ? 1 : this.gameSpeed + 1) as 1 | 2 | 3;
+      this.setGameSpeed(next);
+    });
+    void speedLabel;
+
+    // 키 힌트
+    const hintY = speedY + 40;
+    this.add.text(TRASH_X, hintY, 'D:뽑기 W:웨이브\nS:정렬 Space:정지\n1/2/3:속도', {
+      fontFamily: 'monospace', fontSize: '9px', color: '#66688a', align: 'center',
+    }).setOrigin(0.5, 0);
   }
 
   private handleSort(mode: 'attack' | 'type') {
@@ -820,7 +927,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private shiftRecipesPage(delta: number) {
-    const total = RECIPE_PAGES.length + 2; // +1 synergy, +1 probability
+    const total = RECIPE_PAGES.length + 3; // +synergy +probability +dex
     this.recipesPageIndex = (this.recipesPageIndex + delta + total) % total;
     this.renderRecipesPage();
   }
@@ -836,6 +943,10 @@ export class GameScene extends Phaser.Scene {
     }
     if (this.recipesPageIndex === RECIPE_PAGES.length + 1) {
       this.renderProbabilityPage();
+      return;
+    }
+    if (this.recipesPageIndex === RECIPE_PAGES.length + 2) {
+      this.renderDexPage();
       return;
     }
 
@@ -934,7 +1045,7 @@ export class GameScene extends Phaser.Scene {
       fontFamily: 'monospace', fontSize: '18px', color: '#aab0ff',
     }).setOrigin(0.5);
 
-    const pageText = this.add.text(cx, pagerY, `${this.recipesPageIndex + 1} / ${RECIPE_PAGES.length + 2}`, {
+    const pageText = this.add.text(cx, pagerY, `${this.recipesPageIndex + 1} / ${RECIPE_PAGES.length + 3}`, {
       fontFamily: 'monospace', fontSize: '13px', color: '#ddddee',
     }).setOrigin(0.5);
 
@@ -1073,7 +1184,7 @@ export class GameScene extends Phaser.Scene {
       fontFamily: 'monospace', fontSize: '18px', color: '#aab0ff',
     }).setOrigin(0.5);
 
-    const pageText = this.add.text(cx, pagerY, `${this.recipesPageIndex + 1} / ${RECIPE_PAGES.length + 2}`, {
+    const pageText = this.add.text(cx, pagerY, `${this.recipesPageIndex + 1} / ${RECIPE_PAGES.length + 3}`, {
       fontFamily: 'monospace', fontSize: '13px', color: '#ddddee',
     }).setOrigin(0.5);
 
@@ -1192,7 +1303,7 @@ export class GameScene extends Phaser.Scene {
       fontFamily: 'monospace', fontSize: '18px', color: '#aab0ff',
     }).setOrigin(0.5);
 
-    const pageText = this.add.text(cx, pagerY, `${this.recipesPageIndex + 1} / ${RECIPE_PAGES.length + 2}`, {
+    const pageText = this.add.text(cx, pagerY, `${this.recipesPageIndex + 1} / ${RECIPE_PAGES.length + 3}`, {
       fontFamily: 'monospace', fontSize: '13px', color: '#ddddee',
     }).setOrigin(0.5);
 
@@ -1207,6 +1318,109 @@ export class GameScene extends Phaser.Scene {
       fontFamily: 'monospace', fontSize: '18px', color: '#aab0ff',
     }).setOrigin(0.5);
 
+    container.add([prevBg, prevText, pageText, nextBg, nextText]);
+
+    const closeBg = this.add.rectangle(cx + w / 2 - 22, cy - h / 2 + 22, 32, 32, 0x4a1a1a, 1)
+      .setStrokeStyle(2, 0xff5577)
+      .setInteractive({ useHandCursor: true });
+    closeBg.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      p.event.stopPropagation();
+      this.closeRecipes();
+    });
+    const closeText = this.add.text(cx + w / 2 - 22, cy - h / 2 + 22, 'X', {
+      fontFamily: 'monospace', fontSize: '16px', color: '#ff5577',
+    }).setOrigin(0.5);
+    container.add([closeBg, closeText]);
+  }
+
+  private renderDexPage() {
+    const cx = GAME_WIDTH / 2;
+    const cy = (HUD_HEIGHT + GAME_HEIGHT - CONTROL_HEIGHT) / 2;
+    const w = 980;
+    const h = 540;
+
+    const container = this.add.container(0, 0).setDepth(2500);
+    this.recipesContainer = container;
+
+    const overlay = this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.78)
+      .setOrigin(0, 0)
+      .setInteractive();
+    overlay.on('pointerdown', () => this.closeRecipes());
+    container.add(overlay);
+
+    const card = this.add.rectangle(cx, cy, w, h, 0x1a1c2f, 1)
+      .setStrokeStyle(2, 0x66ff99)
+      .setInteractive();
+    card.on('pointerdown', (p: Phaser.Input.Pointer) => p.event.stopPropagation());
+    container.add(card);
+
+    const dex = this.state.dex;
+    const total = ALL_POKEMON_IDS.length;
+    const acquired = ALL_POKEMON_IDS.filter((id) => dex.has(id)).length;
+
+    container.add(this.add.text(cx, cy - h / 2 + 26, '포켓몬 도감', {
+      fontFamily: 'sans-serif', fontSize: '20px', color: '#66ff99',
+    }).setOrigin(0.5));
+    container.add(this.add.text(cx, cy - h / 2 + 52, `${acquired} / ${total}  (${Math.floor(acquired / total * 100)}%)`, {
+      fontFamily: 'monospace', fontSize: '13px', color: '#ddddee',
+    }).setOrigin(0.5));
+
+    // 그리드: 12열 × 행수
+    const cols = 13;
+    const cellSize = 58;
+    const gridW = cols * cellSize;
+    const startX = cx - gridW / 2 + cellSize / 2;
+    const startY = cy - h / 2 + 82;
+
+    for (let i = 0; i < ALL_POKEMON_IDS.length; i++) {
+      const id = ALL_POKEMON_IDS[i];
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const x = startX + col * cellSize;
+      const y = startY + row * cellSize;
+      const has = dex.has(id);
+
+      const bg = this.add.rectangle(x, y, cellSize - 4, cellSize - 4, has ? 0x2a3a4a : 0x151625, 1)
+        .setStrokeStyle(1, has ? 0x66ff99 : 0x333344, 0.8);
+      container.add(bg);
+
+      if (this.textures.exists(getSpriteKey(id))) {
+        const img = this.add.image(x, y, getSpriteKey(id)).setScale(0.52);
+        if (!has) {
+          img.setTint(0x000000);
+          img.setAlpha(0.75);
+        }
+        container.add(img);
+      }
+    }
+
+    // pager
+    const pagerY = cy + h / 2 - 26;
+    const prevBg = this.add.rectangle(cx - 80, pagerY, 32, 28, 0x2a2f55)
+      .setStrokeStyle(2, 0x6680ff)
+      .setInteractive({ useHandCursor: true });
+    prevBg.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      p.event.stopPropagation();
+      this.shiftRecipesPage(-1);
+    });
+    const prevText = this.add.text(cx - 80, pagerY, '‹', {
+      fontFamily: 'monospace', fontSize: '18px', color: '#aab0ff',
+    }).setOrigin(0.5);
+
+    const pageText = this.add.text(cx, pagerY, `${this.recipesPageIndex + 1} / ${RECIPE_PAGES.length + 3}`, {
+      fontFamily: 'monospace', fontSize: '13px', color: '#ddddee',
+    }).setOrigin(0.5);
+
+    const nextBg = this.add.rectangle(cx + 80, pagerY, 32, 28, 0x2a2f55)
+      .setStrokeStyle(2, 0x6680ff)
+      .setInteractive({ useHandCursor: true });
+    nextBg.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      p.event.stopPropagation();
+      this.shiftRecipesPage(1);
+    });
+    const nextText = this.add.text(cx + 80, pagerY, '›', {
+      fontFamily: 'monospace', fontSize: '18px', color: '#aab0ff',
+    }).setOrigin(0.5);
     container.add([prevBg, prevText, pageText, nextBg, nextText]);
 
     const closeBg = this.add.rectangle(cx + w / 2 - 22, cy - h / 2 + 22, 32, 32, 0x4a1a1a, 1)

@@ -18,6 +18,14 @@ export class EnemyPokemon extends Phaser.GameObjects.Container {
   isBoss: boolean;
   isDead = false;
   reachedEnd = false;
+  // 상태이상
+  private slowFactor = 1; // 1 = 정상, 0.5 = 절반 속도
+  private slowUntil = 0;
+  private stunUntil = 0;
+  private dotDamagePerTick = 0;
+  private dotTicksRemaining = 0;
+  private dotLastTick = 0;
+  private statusIcon?: Phaser.GameObjects.Text;
   private path: Phaser.Curves.Path;
   private pathLength: number;
   private pathProgress = 0;
@@ -72,7 +80,28 @@ export class EnemyPokemon extends Phaser.GameObjects.Container {
 
   tick(deltaMs: number) {
     if (this.isDead) return;
-    this.pathProgress += (this.speed * deltaMs / 1000) / this.pathLength;
+    const now = this.scene.time.now;
+
+    // 상태이상 만료 체크
+    if (this.slowUntil > 0 && now >= this.slowUntil) {
+      this.slowFactor = 1;
+      this.slowUntil = 0;
+    }
+    // DoT 처리 (1초마다 1틱)
+    if (this.dotTicksRemaining > 0 && now - this.dotLastTick >= 1000) {
+      this.takeDamage(this.dotDamagePerTick);
+      this.dotLastTick = now;
+      this.dotTicksRemaining -= 1;
+      if (this.isDead) return;
+    }
+    // 상태 아이콘 갱신
+    this.refreshStatusIcon();
+
+    // 기절이면 이동 안함
+    if (now < this.stunUntil) return;
+
+    const effectiveSpeed = this.speed * this.slowFactor;
+    this.pathProgress += (effectiveSpeed * deltaMs / 1000) / this.pathLength;
     if (this.pathProgress >= 1) {
       this.reachedEnd = true;
       return;
@@ -85,6 +114,46 @@ export class EnemyPokemon extends Phaser.GameObjects.Container {
       if (Math.abs(_tmpTangent.x) > 0.2) {
         this.sprite.setFlipX(_tmpTangent.x < 0);
       }
+    }
+  }
+
+  applySlow(factor: number, until: number) {
+    // 더 강한 감속만 덮어씌움
+    if (factor < this.slowFactor || this.slowUntil === 0) {
+      this.slowFactor = factor;
+    }
+    this.slowUntil = Math.max(this.slowUntil, until);
+  }
+
+  applyStun(until: number) {
+    this.stunUntil = Math.max(this.stunUntil, until);
+  }
+
+  applyDot(damage: number, ticks: number, now: number) {
+    this.dotDamagePerTick = damage;
+    this.dotTicksRemaining = Math.max(this.dotTicksRemaining, ticks);
+    if (this.dotLastTick === 0) this.dotLastTick = now;
+  }
+
+  private refreshStatusIcon() {
+    const now = this.scene.time.now;
+    let icon = '';
+    if (now < this.stunUntil) icon = '⚡';
+    else if (this.slowUntil > now) icon = '❄';
+    else if (this.dotTicksRemaining > 0) icon = '☠';
+
+    if (icon) {
+      if (!this.statusIcon) {
+        this.statusIcon = this.scene.add.text(this.isBoss ? 50 : 30, this.isBoss ? -36 : -24, icon, {
+          fontFamily: 'sans-serif', fontSize: '14px', color: '#ffffff',
+        }).setOrigin(0.5);
+        this.add(this.statusIcon);
+      } else {
+        this.statusIcon.setText(icon);
+        this.statusIcon.setVisible(true);
+      }
+    } else if (this.statusIcon) {
+      this.statusIcon.setVisible(false);
     }
   }
 

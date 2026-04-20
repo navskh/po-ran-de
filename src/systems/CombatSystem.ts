@@ -5,6 +5,10 @@ import { TowerUnit } from '../entities/TowerUnit';
 import { EnemyPokemon } from '../entities/EnemyPokemon';
 import { getTypeMultiplier, TYPE_COLORS, PokemonType } from '../data/typeChart';
 
+interface ISceneWithCombo extends Phaser.Scene {
+  incrementCombo?: () => void;
+}
+
 function colorHexToInt(hex: string): number {
   return parseInt(hex.replace('#', ''), 16);
 }
@@ -81,27 +85,72 @@ export class CombatSystem {
     const dmg = Math.max(1, Math.floor(tower.computeAttack() * mult));
     const pattern = getAttackPattern(tower);
 
+    const killEnemy = (e: EnemyPokemon) => {
+      if (e.isDead) {
+        this.wave.killEnemy(e);
+        const scene = this.scene as ISceneWithCombo;
+        scene.incrementCombo?.();
+      }
+    };
+
+    // 상태이상: 얼음/물/바위 → 감속, 전기 → 기절
+    this.applyStatusEffect(target, attackType);
+
     if (pattern === 'splash') {
-      this.applySplash(tower, target, dmg, attackType);
+      this.applySplash(tower, target, dmg, attackType, killEnemy);
     } else if (pattern === 'beam') {
       target.takeDamage(dmg);
+      this.drawDamageNumber(target.x, target.y, dmg, mult >= 2);
       this.drawBeam(tower, target, attackType, mult);
-      if (target.isDead) this.wave.killEnemy(target);
+      killEnemy(target);
     } else if (pattern === 'melee') {
       target.takeDamage(dmg);
+      this.drawDamageNumber(target.x, target.y, dmg, mult >= 2);
       this.drawMelee(tower, target, attackType);
-      if (target.isDead) this.wave.killEnemy(target);
+      killEnemy(target);
     } else {
       target.takeDamage(dmg);
+      this.drawDamageNumber(target.x, target.y, dmg, mult >= 2);
       this.drawProjectile(tower, target, attackType);
-      if (target.isDead) this.wave.killEnemy(target);
+      killEnemy(target);
     }
 
     this.drawHitText(target, mult);
   }
 
-  private applySplash(tower: TowerUnit, target: EnemyPokemon, dmg: number, attackType: PokemonType) {
+  private applyStatusEffect(target: EnemyPokemon, attackType: PokemonType) {
+    const now = this.scene.time.now;
+    if (attackType === 'ice' || attackType === 'water') {
+      target.applySlow(0.5, now + 1500); // 50% 감속 1.5초
+    } else if (attackType === 'rock' || attackType === 'ground') {
+      target.applySlow(0.7, now + 1200); // 30% 감속
+    } else if (attackType === 'electric' && Math.random() < 0.15) {
+      target.applyStun(now + 500); // 15% 확률 0.5초 기절
+    } else if (attackType === 'poison' || attackType === 'fire') {
+      target.applyDot(3, 3, now); // 3 데미지씩 3틱 (1초 간격)
+    }
+  }
+
+  private drawDamageNumber(x: number, y: number, dmg: number, isEffective = false) {
+    const color = isEffective ? '#ffd34d' : '#ffffff';
+    const size = isEffective ? '16px' : '13px';
+    const t = this.scene.add.text(x + (Math.random() - 0.5) * 20, y - 20, `${dmg}`, {
+      fontFamily: 'monospace', fontSize: size, color,
+      stroke: '#000', strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(800);
+    this.scene.tweens.add({
+      targets: t,
+      y: y - 55,
+      alpha: 0,
+      duration: 700,
+      ease: 'Quad.out',
+      onComplete: () => t.destroy(),
+    });
+  }
+
+  private applySplash(tower: TowerUnit, target: EnemyPokemon, dmg: number, attackType: PokemonType, onKill: (e: EnemyPokemon) => void) {
     target.takeDamage(dmg);
+    this.drawDamageNumber(target.x, target.y, dmg, true);
     const aoeDmg = Math.floor(dmg * 0.5);
     for (const e of this.wave.enemies) {
       if (e === target || e.isDead) continue;
@@ -109,11 +158,13 @@ export class CombatSystem {
       const dy = e.y - target.y;
       if (dx * dx + dy * dy < SPLASH_RADIUS * SPLASH_RADIUS) {
         e.takeDamage(aoeDmg);
-        if (e.isDead) this.wave.killEnemy(e);
+        this.drawDamageNumber(e.x, e.y, aoeDmg);
+        this.applyStatusEffect(e, attackType);
+        onKill(e);
       }
     }
     this.drawSplash(tower, target, attackType);
-    if (target.isDead) this.wave.killEnemy(target);
+    onKill(target);
   }
 
   private drawProjectile(tower: TowerUnit, target: EnemyPokemon, type: PokemonType) {
