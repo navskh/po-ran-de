@@ -48,6 +48,8 @@ export const RECIPE_PAGES: IRecipePage[] = [
       { ingredients: [125, 26],  result: 243, ko: '라이코' },   // 에레브(단독 완전체) + 라이츄 (전기+전기)
       { ingredients: [126, 59],  result: 244, ko: '엔테이' },   // 마그마(단독 완전체) + 윈디 (불+불)
       { ingredients: [131, 62],  result: 245, ko: '스이쿤' },   // 라프라스(단독 완전체) + 강챙이 (물+물)
+      // 벌레 신화 (5세대)
+      { ingredients: [127, 123], result: 649, ko: '게노세크트' }, // 쁘사이저 + 스라크 (벌레+벌레/비행)
     ],
   },
   {
