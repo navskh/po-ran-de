@@ -66,29 +66,37 @@ export class MergeSystem {
     const result = this.evaluate(dragged, target);
     if (result.type === 'none') return result;
 
+    // 합산 기반: target/dragged 순서 무관하게 level/star 합산
+    const combinedStars = target.extraStars + dragged.extraStars;
+    const evolvedStars = Math.floor(combinedStars / 2); // 진화 시 합산의 절반 반영
+
     if (result.type === 'levelup') {
-      target.setLevel(target.level + dragged.level);
+      const newLevel = Math.min(target.level + dragged.level, target.maxLevel());
+      target.setLevel(newLevel);
+      target.setStars(combinedStars);
       this.grid.removeUnit(dragged);
     } else if (result.type === 'starUp') {
-      target.addStar();
+      // 만렙 같은 종: dragged 별 + target 별 + 1(starUp)
+      target.setStars(combinedStars + 1);
       this.grid.removeUnit(dragged);
     } else if (result.type === 'evolve') {
       const newPokemon = getPokemon(target.pokemon.evolvesTo!);
       target.evolveTo(newPokemon);
+      target.setStars(evolvedStars);
       this.grid.removeUnit(dragged);
     } else if (result.type === 'metamonMerge') {
       const newPokemon = getPokemon(target.pokemon.evolvesTo!);
       target.evolveTo(newPokemon);
+      target.setStars(evolvedStars);
       this.grid.removeUnit(dragged);
     } else if (result.type === 'metamonStar') {
-      target.addStar();
+      target.setStars(combinedStars + 1);
       this.grid.removeUnit(dragged);
     } else if (result.type === 'eeveeMerge') {
       const newPokemon = getPokemon(result.eeveeId!);
       const inheritedLevel = target.level;
-      const inheritedStars = target.extraStars;
       dragged.evolveTo(newPokemon);
-      dragged.inherit(inheritedLevel, inheritedStars);
+      dragged.inherit(inheritedLevel, evolvedStars);
       const tCol = target.col;
       const tRow = target.row;
       this.grid.removeUnit(dragged);
@@ -97,6 +105,7 @@ export class MergeSystem {
     } else if (result.type === 'legendary') {
       const newPokemon = getPokemon(result.legendaryId!);
       target.evolveTo(newPokemon);
+      target.setStars(evolvedStars);
       this.grid.removeUnit(dragged);
     }
 

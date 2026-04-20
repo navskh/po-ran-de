@@ -1,9 +1,9 @@
-export const MAIN_GRID_COLS = 6;
-export const GRID_COLS = 8;
+export const MAIN_GRID_COLS = 7;
+export const GRID_COLS = 9;
 export const GRID_ROWS = 4;
 export const CELL_W = 96;
 export const CELL_H = 110;
-export const GRID_X = 224;
+export const GRID_X = 128;
 export const GRID_Y = 130;
 
 export const EXT_COL_COUNT = 2;
@@ -14,18 +14,19 @@ export const CONTROL_HEIGHT = 80;
 
 export const PATH_WAYPOINTS: Array<{ x: number; y: number }> = [
   { x: 1100, y: 240 },
-  { x: 1010, y: 240 },
-  { x: 1010, y: 100 },
-  { x: 180,  y: 100 },
-  { x: 180,  y: 600 },
-  { x: 1010, y: 600 },
-  { x: 1010, y: 460 },
+  { x: 1015, y: 240 },
+  { x: 1015, y: 100 },
+  { x: 85,   y: 100 },
+  { x: 85,   y: 605 },
+  { x: 1015, y: 605 },
+  { x: 1015, y: 460 },
   { x: 1100, y: 460 },
 ];
 
 export const STARTING_GOLD = 100;
 export const STARTING_LIVES = 20;
 export const GACHA_COST = 10;
+export const ADVANCED_GACHA_COST = 50;
 export const ENEMY_KILL_GOLD = 5;
 export const INITIAL_UNLOCKED_COLS = MAIN_GRID_COLS;
 export const EXPAND_COL_COST = 5000;

@@ -83,35 +83,130 @@ const POKEMON_INFO: Record<number, IPokemonInfo> = {
   197: { ko: '블래키',     types: ['dark'] },
   470: { ko: '리피아',     types: ['grass'] },
   471: { ko: '글레이시아', types: ['ice'] },
+
+  // 1세대 단독 추가
+  95:  { ko: '롱스톤',     types: ['rock', 'ground'] },
+  106: { ko: '시라소몬',   types: ['fighting'] },
+  107: { ko: '홍수몬',     types: ['fighting'] },
+  108: { ko: '내루미',     types: ['normal'] },
+  113: { ko: '럭키',       types: ['normal'] },
+  114: { ko: '덩쿠리',     types: ['grass'] },
+  115: { ko: '캥카',       types: ['normal'] },
+  122: { ko: '마임맨',     types: ['psychic'] },
+  123: { ko: '스라크',     types: ['bug', 'flying'] },
+  124: { ko: '루주라',     types: ['ice', 'psychic'] },
+  125: { ko: '에레브',     types: ['electric'] },
+  126: { ko: '마그마',     types: ['fire'] },
+  127: { ko: '쁘사이저',   types: ['bug'] },
+  128: { ko: '켄타로스',   types: ['normal'] },
+  131: { ko: '라프라스',   types: ['water', 'ice'] },
+  137: { ko: '폴리곤',     types: ['normal'] },
+  138: { ko: '암나이트',   types: ['rock', 'water'] },
+  139: { ko: '암스타',     types: ['rock', 'water'] },
+  140: { ko: '투구',       types: ['rock', 'water'] },
+  141: { ko: '투구푸스',   types: ['rock', 'water'] },
+  142: { ko: '프테라',     types: ['rock', 'flying'] },
+
+  // 2세대 진화체
+  208: { ko: '강철톤',     types: ['steel', 'ground'] },
+  212: { ko: '핫삼',       types: ['bug', 'steel'] },
+  233: { ko: '폴리곤2',    types: ['normal'] },
+  242: { ko: '해피너스',   types: ['normal'] },
+
+  // 2세대 전설 트리오
+  243: { ko: '라이코',     types: ['electric'] },
+  244: { ko: '엔테이',     types: ['fire'] },
+  245: { ko: '스이쿤',     types: ['water'] },
+
+  // 4세대 진화체
+  466: { ko: '에레키블',   types: ['electric'] },
+  467: { ko: '마그마번',   types: ['fire'] },
+  474: { ko: '폴리곤Z',    types: ['normal'] },
+
+  // 메가 진화 (1세대 8종)
+  10033: { ko: '메가 이상해꽃',  types: ['grass', 'poison'] },
+  10035: { ko: '메가 리자몽Y',   types: ['fire', 'flying'] },
+  10036: { ko: '메가 거북왕',   types: ['water'] },
+  10037: { ko: '메가 후딘',     types: ['psychic'] },
+  10038: { ko: '메가 캥카',     types: ['normal'] },
+  10041: { ko: '메가 프테라',   types: ['rock', 'flying'] },
+  10042: { ko: '메가 갸라도스', types: ['water', 'dark'] },
+  10043: { ko: '메가 뮤츠Y',    types: ['psychic'] },
 };
 
 const EVOLUTION_CHAINS: number[][] = [
-  [1, 2, 3], [4, 5, 6], [7, 8, 9],
+  // 메가 진화 포함 체인
+  [1, 2, 3, 10033],           // 이상해씨 → 이상해풀 → 이상해꽃 → 메가 이상해꽃
+  [4, 5, 6, 10035],            // 파이리 → 리자드 → 리자몽 → 메가 리자몽Y
+  [7, 8, 9, 10036],            // 꼬부기 → 어니부기 → 거북왕 → 메가 거북왕
+  [63, 64, 65, 10037],         // 캐이시 → 윤겔라 → 후딘 → 메가 후딘
+  [129, 130, 10042],           // 잉어킹 → 갸라도스 → 메가 갸라도스
+  [150, 10043],                // 뮤츠 → 메가 뮤츠Y
+  [115, 10038],                // 캥카 → 메가 캥카
+  [142, 10041],                // 프테라 → 메가 프테라
+
+  // 일반 진화 체인
   [10, 11, 12], [13, 14, 15], [16, 17, 18],
-  [60, 61, 62], [63, 64, 65], [66, 67, 68],
+  [60, 61, 62], [66, 67, 68],
   [74, 75, 76], [92, 93, 94], [147, 148, 149],
   [19, 20], [25, 26], [35, 36], [37, 38], [39, 40], [50, 51], [52, 53],
-  [58, 59], [129, 130], [133, 134],
-  [83], [132], [143], [144], [145], [146], [150], [151], [135], [136],
+  [58, 59], [133, 134],
+
+  // 신규 자연 진화 체인 (단독 포켓몬의 2단계 진화)
+  [95, 208],                   // 롱스톤 → 강철톤
+  [113, 242],                  // 럭키 → 해피너스
+  [123, 212],                  // 스라크 → 핫삼
+  [125, 466],                  // 에레브 → 에레키블
+  [126, 467],                  // 마그마 → 마그마번
+  [137, 233, 474],             // 폴리곤 → 폴리곤2 → 폴리곤Z
+  [138, 139],                  // 암나이트 → 암스타
+  [140, 141],                  // 투구 → 투구푸스
+
+  // 단독 (진화 없음)
+  [83], [132], [143], [144], [145], [146], [151],
+  [135], [136], [196], [197], [470], [471],
   [249], [250], [251], [384], [483], [484], [493],
-  [196], [197], [470], [471],
+  [106], [107], [108], [114], [122], [124], [127], [128], [131],
+  [243], [244], [245],
 ];
 
 const BASE_RARITY: Record<number, 1 | 2 | 3 | 4 | 5 | 6> = {
   10: 1, 13: 1, 16: 1, 19: 1,
   1: 2, 4: 2, 7: 2, 25: 2, 35: 2, 37: 2, 39: 2, 50: 2, 52: 2,
-  58: 2, 60: 2, 63: 2, 66: 2, 74: 2, 92: 2, 129: 2,
+  58: 2, 60: 2, 63: 2, 66: 2, 74: 2, 92: 2, 129: 2, 95: 2,
   83: 3, 132: 3, 133: 3, 147: 3,
+  106: 3, 107: 3, 108: 3, 113: 3, 114: 3, 115: 3, 122: 3, 123: 3,
+  124: 3, 125: 3, 126: 3, 127: 3, 128: 3, 137: 3, 138: 3, 140: 3,
   134: 4, 135: 4, 136: 4, 196: 4, 197: 4, 470: 4, 471: 4,
-  143: 4,
+  131: 4, 142: 4, 143: 4,
   144: 5, 145: 5, 146: 5, 150: 5, 151: 5,
+  243: 5, 244: 5, 245: 5,
   249: 5, 250: 5, 251: 5, 384: 5,
   483: 6, 484: 6, 493: 6,
 };
 
+// 단독 합성 결과 (RECIPES result) - 기본 뽑기에서 제외, 고급 뽑기에 일정 확률로 포함
+const RECIPE_RESULTS = new Set<number>([
+  // 1세대 단독 (rarity 3~4)
+  95, 106, 107, 108, 113, 114, 115, 122, 123, 124,
+  125, 126, 127, 128, 131, 137, 138, 140, 142, 143,
+  // 1세대 전설 (rarity 5)
+  144, 145, 146, 150, 151,
+  // 2세대 전설 (rarity 5)
+  243, 244, 245,
+]);
+
 const GACHA_EXCLUDED = new Set<number>([
+  // 이브이 진화체 (이브이로만 얻기)
   134, 135, 136, 196, 197, 470, 471,
+  // 신화/메가 전설 (합성으로만)
   249, 250, 251, 384, 483, 484, 493,
+  // 2세대/4세대 진화체 (자연 진화로만)
+  139, 141, 208, 212, 233, 242, 466, 467, 474,
+  // 메가 진화 (자연 진화로만)
+  10033, 10035, 10036, 10037, 10038, 10041, 10042, 10043,
+  // 단독 합성 결과 (고급 뽑기로만)
+  ...RECIPE_RESULTS,
 ]);
 
 const RARITY_BASE_STATS: Record<number, { hp: number; attack: number; range: number; attackSpeed: number }> = {
@@ -141,7 +236,8 @@ export const MAX_LEVEL = 5;
 export function getMaxLevel(stage: number): number {
   if (stage === 1) return 1;
   if (stage === 2) return 2;
-  return 3;
+  if (stage === 3) return 3;
+  return 5;
 }
 
 export const GACHA_RATES: Record<number, number> = {
@@ -184,7 +280,7 @@ export function getPokemon(id: number): IPokemon {
   const rarity = BASE_RARITY[baseId];
   const stage = STAGE[id];
   const stats = RARITY_BASE_STATS[rarity];
-  const stageMult = stage === 1 ? 1 : stage === 2 ? 2.2 : 4.5;
+  const stageMult = stage === 1 ? 1 : stage === 2 ? 2.2 : stage === 3 ? 4.5 : 8.0;
   return {
     id,
     ko: info.ko,
@@ -229,4 +325,22 @@ export function rollRandomPokemonId(): number {
     return BASE_POKEMON_IDS[Math.floor(Math.random() * BASE_POKEMON_IDS.length)];
   }
   return candidates[Math.floor(Math.random() * candidates.length)];
+}
+
+// 고급 뽑기: 30% 확률로 단독 합성 결과(전설 제외) + 70%는 일반 풀 + 5% 확률로 1세대 전설
+export const ADVANCED_RECIPE_POOL: number[] = [
+  95, 106, 107, 108, 113, 114, 115, 122, 123, 124,
+  125, 126, 127, 128, 131, 137, 138, 140, 142, 143,
+];
+export const ADVANCED_LEGENDARY_POOL: number[] = [144, 145, 146, 150, 151, 243, 244, 245];
+
+export function rollAdvancedRandomPokemonId(): number {
+  const r = Math.random();
+  if (r < 0.05) {
+    return ADVANCED_LEGENDARY_POOL[Math.floor(Math.random() * ADVANCED_LEGENDARY_POOL.length)];
+  }
+  if (r < 0.35) {
+    return ADVANCED_RECIPE_POOL[Math.floor(Math.random() * ADVANCED_RECIPE_POOL.length)];
+  }
+  return rollRandomPokemonId();
 }

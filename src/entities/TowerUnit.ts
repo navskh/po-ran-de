@@ -160,6 +160,13 @@ export class TowerUnit extends Phaser.GameObjects.Container {
     this.refreshLevelDisplay();
   }
 
+  setStars(n: number) {
+    this.extraStars = Math.max(0, n);
+    this.hpCurrent = this.computeHp();
+    this.starsText.setText('★'.repeat(this.effectiveStage()));
+    this.refreshLevelDisplay();
+  }
+
   inherit(level: number, stars: number) {
     this.extraStars = stars;
     this.level = Math.max(1, Math.min(level, this.maxLevel()));

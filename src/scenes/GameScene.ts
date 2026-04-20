@@ -2,13 +2,13 @@ import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../game/config';
 import {
   GRID_COLS, GRID_ROWS, CELL_W, CELL_H, GRID_X, GRID_Y,
-  CONTROL_HEIGHT, cellCenter, cellScale, pointToCell, PATH_WAYPOINTS,
-  STARTING_GOLD, STARTING_LIVES, GACHA_COST,
+  HUD_HEIGHT, CONTROL_HEIGHT, cellCenter, cellScale, pointToCell, PATH_WAYPOINTS,
+  STARTING_GOLD, STARTING_LIVES, GACHA_COST, ADVANCED_GACHA_COST,
   INITIAL_UNLOCKED_COLS, EXPAND_COL_COST,
   MAIN_GRID_COLS, isValidCell,
 } from '../game/balance';
 import { RECIPES, IRecipe } from '../data/recipes';
-import { getPokemon, rollRandomPokemonId, getSpriteKey } from '../data/pokemonData';
+import { getPokemon, rollRandomPokemonId, rollAdvancedRandomPokemonId, getSpriteKey } from '../data/pokemonData';
 import { RECIPE_PAGES } from '../data/recipes';
 void RECIPES;
 import { GameState } from '../state/GameState';
@@ -75,6 +75,7 @@ export class GameScene extends Phaser.Scene {
       this,
       this.state,
       () => this.handleDraw(),
+      () => this.handleAdvancedDraw(),
       () => this.handleStartWave(),
       () => this.openRecipes(),
       () => this.handleExpandCol(),
@@ -339,15 +340,23 @@ export class GameScene extends Phaser.Scene {
   }
 
   private handleDraw() {
+    this.spawnDrawnUnit(GACHA_COST, rollRandomPokemonId);
+  }
+
+  private handleAdvancedDraw() {
+    this.spawnDrawnUnit(ADVANCED_GACHA_COST, rollAdvancedRandomPokemonId);
+  }
+
+  private spawnDrawnUnit(cost: number, roller: () => number) {
     if (this.grid.isFull()) {
       this.flashMessage('자리가 가득 찼어요! 합치거나 버려서 자리 만드세요', '#ff7b8c');
       return;
     }
-    if (!this.state.spendGold(GACHA_COST)) {
+    if (!this.state.spendGold(cost)) {
       this.flashMessage('골드 부족!', '#ff7b8c');
       return;
     }
-    const id = rollRandomPokemonId();
+    const id = roller();
     const pokemon = getPokemon(id);
     const cell = this.grid.findEmptyCell()!;
     const { x, y } = cellCenter(cell.col, cell.row);
@@ -542,7 +551,10 @@ export class GameScene extends Phaser.Scene {
     for (const t of towers) {
       idCounts.set(t.pokemon.id, (idCounts.get(t.pokemon.id) ?? 0) + 1);
     }
+
     const possible: IRecipe[] = [];
+
+    // 레시피 조합
     for (const r of RECIPES) {
       const [a, b] = r.ingredients;
       if (a === b) {
@@ -551,18 +563,51 @@ export class GameScene extends Phaser.Scene {
         if ((idCounts.get(a) ?? 0) >= 1 && (idCounts.get(b) ?? 0) >= 1) possible.push(r);
       }
     }
+
+    // 자연 진화/별 강화/레벨업 추천 (같은 종 2마리 이상)
+    for (const [id, count] of idCounts.entries()) {
+      if (count < 2) continue;
+      const matches = towers.filter((t) => t.pokemon.id === id);
+      const sorted = [...matches].sort((a, b) => b.level - a.level);
+      const target = sorted[0];
+      const dragged = sorted[1];
+      const evalResult = this.mergeSystem.evaluate(dragged, target);
+
+      if (evalResult.type === 'evolve') {
+        const evolved = getPokemon(target.pokemon.evolvesTo!);
+        possible.push({
+          ingredients: [id, id] as [number, number],
+          result: target.pokemon.evolvesTo!,
+          ko: evolved.ko,
+        });
+      } else if (evalResult.type === 'starUp') {
+        possible.push({
+          ingredients: [id, id] as [number, number],
+          result: id,
+          ko: `★+1`,
+        });
+      } else if (evalResult.type === 'levelup') {
+        const newLevel = Math.min(target.level + dragged.level, target.maxLevel());
+        possible.push({
+          ingredients: [id, id] as [number, number],
+          result: id,
+          ko: `Lv${newLevel}`,
+        });
+      }
+    }
+
     if (possible.length === 0) return;
 
     const container = this.add.container(0, 0).setDepth(300);
     this.possibleMatchesUI = container;
     const baseY = GAME_HEIGHT - CONTROL_HEIGHT - 44;
-    container.add(this.add.text(GAME_WIDTH / 2, baseY - 18, `가능한 조합 ${possible.length}`, {
+    container.add(this.add.text(GAME_WIDTH / 2, baseY - 18, `가능한 조합 ${possible.length} (클릭하여 합성)`, {
       fontFamily: 'monospace', fontSize: '11px', color: '#7afcc9',
     }).setOrigin(0.5));
 
     const maxDisplay = 8;
     const displayed = possible.slice(0, maxDisplay);
-    const itemWidth = 88;
+    const itemWidth = 92;
     const totalWidth = displayed.length * itemWidth;
     const startX = (GAME_WIDTH - totalWidth) / 2 + itemWidth / 2;
 
@@ -570,23 +615,59 @@ export class GameScene extends Phaser.Scene {
       const r = displayed[i];
       const x = startX + i * itemWidth;
       const y = baseY;
+
+      const hit = this.add.rectangle(x + 8, y, itemWidth - 6, 42, 0x1a1c2f, 0.5)
+        .setStrokeStyle(1, 0x44476a, 0.7)
+        .setInteractive({ useHandCursor: true });
+      hit.on('pointerover', () => hit.setStrokeStyle(2, 0x7afcc9, 1));
+      hit.on('pointerout', () => hit.setStrokeStyle(1, 0x44476a, 0.7));
+      hit.on('pointerdown', () => this.executeRecipe(r));
+      container.add(hit);
+
       const [aId, bId] = r.ingredients;
       if (this.textures.exists(getSpriteKey(aId))) {
-        container.add(this.add.image(x - 26, y, getSpriteKey(aId)).setScale(0.5));
+        container.add(this.add.image(x - 24, y, getSpriteKey(aId)).setScale(0.5));
       }
-      container.add(this.add.text(x - 8, y, '+', {
+      container.add(this.add.text(x - 6, y, '+', {
         fontFamily: 'monospace', fontSize: '10px', color: '#aab0d4',
       }).setOrigin(0.5));
       if (this.textures.exists(getSpriteKey(bId))) {
-        container.add(this.add.image(x + 10, y, getSpriteKey(bId)).setScale(0.5));
+        container.add(this.add.image(x + 12, y, getSpriteKey(bId)).setScale(0.5));
       }
-      container.add(this.add.text(x + 26, y, '→', {
+      container.add(this.add.text(x + 28, y, '→', {
         fontFamily: 'monospace', fontSize: '10px', color: '#aab0d4',
       }).setOrigin(0.5));
       if (this.textures.exists(getSpriteKey(r.result))) {
-        container.add(this.add.image(x + 42, y, getSpriteKey(r.result)).setScale(0.6));
+        container.add(this.add.image(x + 44, y, getSpriteKey(r.result)).setScale(0.6));
       }
     }
+  }
+
+  private executeRecipe(r: IRecipe) {
+    const [aId, bId] = r.ingredients;
+    const towers = this.grid.getAllTowers();
+
+    let dragged: TowerUnit | null = null;
+    let target: TowerUnit | null = null;
+
+    if (aId === bId) {
+      const matches = towers.filter((t) => t.pokemon.id === aId);
+      if (matches.length < 2) return;
+      dragged = matches[0];
+      target = matches[1];
+    } else {
+      dragged = towers.find((t) => t.pokemon.id === aId) ?? null;
+      target = towers.find((t) => t.pokemon.id === bId) ?? null;
+    }
+
+    if (!dragged || !target || dragged === target) return;
+
+    const evalResult = this.mergeSystem.evaluate(dragged, target);
+    if (evalResult.type === 'none') {
+      this.flashMessage('합성 불가', '#ff7b8c');
+      return;
+    }
+    this.performMerge(dragged, target, evalResult);
   }
 
   private refreshNextWavePreview() {
@@ -704,9 +785,9 @@ export class GameScene extends Phaser.Scene {
     }
 
     const cx = GAME_WIDTH / 2;
-    const cy = GAME_HEIGHT / 2;
-    const w = 800;
-    const h = 560;
+    const cy = (HUD_HEIGHT + GAME_HEIGHT - CONTROL_HEIGHT) / 2;
+    const w = 980;
+    const h = 540;
     const page = RECIPE_PAGES[this.recipesPageIndex];
 
     const container = this.add.container(0, 0).setDepth(2500);
@@ -724,24 +805,24 @@ export class GameScene extends Phaser.Scene {
     card.on('pointerdown', (pointer: Phaser.Input.Pointer) => pointer.event.stopPropagation());
     container.add(card);
 
-    container.add(this.add.text(cx, cy - h / 2 + 28, page.title, {
-      fontFamily: 'sans-serif', fontSize: '22px', color: '#ffd34d',
+    container.add(this.add.text(cx, cy - h / 2 + 26, page.title, {
+      fontFamily: 'sans-serif', fontSize: '20px', color: '#ffd34d',
     }).setOrigin(0.5));
 
-    container.add(this.add.text(cx, cy - h / 2 + 56, page.subtitle, {
-      fontFamily: 'monospace', fontSize: '12px', color: '#aab0d4',
+    container.add(this.add.text(cx, cy - h / 2 + 50, page.subtitle, {
+      fontFamily: 'monospace', fontSize: '11px', color: '#aab0d4',
     }).setOrigin(0.5));
 
-    container.add(this.add.text(cx, cy - h / 2 + 76, '두 마리 있으면 바로 합성 가능 (만렙 조건 없음)', {
-      fontFamily: 'monospace', fontSize: '11px', color: '#7afcc9',
+    container.add(this.add.text(cx, cy - h / 2 + 68, '두 마리 있으면 바로 합성 가능 (만렙 조건 없음)', {
+      fontFamily: 'monospace', fontSize: '10px', color: '#7afcc9',
     }).setOrigin(0.5));
 
-    const cols = 2;
+    const cols = 3;
     const rows = Math.ceil(page.recipes.length / cols);
-    const colWidth = (w - 60) / cols;
-    const rowHeight = 76;
-    const startTopY = cy - h / 2 + 100;
-    const startLeftX = cx - w / 2 + 30;
+    const colWidth = (w - 40) / cols;
+    const rowHeight = 72;
+    const startTopY = cy - h / 2 + 95;
+    const startLeftX = cx - w / 2 + 20;
 
     for (let i = 0; i < page.recipes.length; i++) {
       const recipe = page.recipes[i];
@@ -756,38 +837,38 @@ export class GameScene extends Phaser.Scene {
       const rP = getPokemon(recipe.result);
 
       if (this.textures.exists(getSpriteKey(aId))) {
-        container.add(this.add.image(baseX + 18, yPos, getSpriteKey(aId)).setScale(0.75));
+        container.add(this.add.image(baseX + 18, yPos, getSpriteKey(aId)).setScale(0.65));
       }
-      container.add(this.add.text(baseX + 18, yPos + 26, aP.ko, {
-        fontFamily: 'sans-serif', fontSize: '11px', color: '#aab0d4',
+      container.add(this.add.text(baseX + 18, yPos + 24, aP.ko, {
+        fontFamily: 'sans-serif', fontSize: '10px', color: '#aab0d4',
       }).setOrigin(0.5));
 
-      container.add(this.add.text(baseX + 60, yPos, '+', {
-        fontFamily: 'monospace', fontSize: '16px', color: '#ddddee',
+      container.add(this.add.text(baseX + 56, yPos, '+', {
+        fontFamily: 'monospace', fontSize: '14px', color: '#ddddee',
       }).setOrigin(0.5));
 
       if (this.textures.exists(getSpriteKey(bId))) {
-        container.add(this.add.image(baseX + 102, yPos, getSpriteKey(bId)).setScale(0.75));
+        container.add(this.add.image(baseX + 92, yPos, getSpriteKey(bId)).setScale(0.65));
       }
-      container.add(this.add.text(baseX + 102, yPos + 26, bP.ko, {
-        fontFamily: 'sans-serif', fontSize: '11px', color: '#aab0d4',
+      container.add(this.add.text(baseX + 92, yPos + 24, bP.ko, {
+        fontFamily: 'sans-serif', fontSize: '10px', color: '#aab0d4',
       }).setOrigin(0.5));
 
-      container.add(this.add.text(baseX + 146, yPos, '→', {
-        fontFamily: 'monospace', fontSize: '16px', color: '#aab0d4',
+      container.add(this.add.text(baseX + 130, yPos, '→', {
+        fontFamily: 'monospace', fontSize: '14px', color: '#aab0d4',
       }).setOrigin(0.5));
 
       if (this.textures.exists(getSpriteKey(recipe.result))) {
-        container.add(this.add.image(baseX + 188, yPos, getSpriteKey(recipe.result)).setScale(1.0));
+        container.add(this.add.image(baseX + 172, yPos, getSpriteKey(recipe.result)).setScale(0.85));
       }
-      container.add(this.add.text(baseX + 218, yPos, rP.ko, {
-        fontFamily: 'sans-serif', fontSize: '13px', color: '#ffd34d',
+      container.add(this.add.text(baseX + 200, yPos, rP.ko, {
+        fontFamily: 'sans-serif', fontSize: '12px', color: '#ffd34d',
       }).setOrigin(0, 0.5));
     }
 
     // 페이지 인디케이터 + 화살표
-    const pagerY = cy + h / 2 - 30;
-    const prevBg = this.add.rectangle(cx - 80, pagerY, 36, 32, 0x2a2f55)
+    const pagerY = cy + h / 2 - 26;
+    const prevBg = this.add.rectangle(cx - 80, pagerY, 32, 28, 0x2a2f55)
       .setStrokeStyle(2, 0x6680ff)
       .setInteractive({ useHandCursor: true });
     prevBg.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
@@ -795,14 +876,14 @@ export class GameScene extends Phaser.Scene {
       this.shiftRecipesPage(-1);
     });
     const prevText = this.add.text(cx - 80, pagerY, '‹', {
-      fontFamily: 'monospace', fontSize: '20px', color: '#aab0ff',
+      fontFamily: 'monospace', fontSize: '18px', color: '#aab0ff',
     }).setOrigin(0.5);
 
     const pageText = this.add.text(cx, pagerY, `${this.recipesPageIndex + 1} / ${RECIPE_PAGES.length}`, {
-      fontFamily: 'monospace', fontSize: '14px', color: '#ddddee',
+      fontFamily: 'monospace', fontSize: '13px', color: '#ddddee',
     }).setOrigin(0.5);
 
-    const nextBg = this.add.rectangle(cx + 80, pagerY, 36, 32, 0x2a2f55)
+    const nextBg = this.add.rectangle(cx + 80, pagerY, 32, 28, 0x2a2f55)
       .setStrokeStyle(2, 0x6680ff)
       .setInteractive({ useHandCursor: true });
     nextBg.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
@@ -810,21 +891,21 @@ export class GameScene extends Phaser.Scene {
       this.shiftRecipesPage(1);
     });
     const nextText = this.add.text(cx + 80, pagerY, '›', {
-      fontFamily: 'monospace', fontSize: '20px', color: '#aab0ff',
+      fontFamily: 'monospace', fontSize: '18px', color: '#aab0ff',
     }).setOrigin(0.5);
 
     container.add([prevBg, prevText, pageText, nextBg, nextText]);
 
     // 닫기 버튼
-    const closeBg = this.add.rectangle(cx + w / 2 - 24, cy - h / 2 + 24, 36, 36, 0x4a1a1a, 1)
+    const closeBg = this.add.rectangle(cx + w / 2 - 22, cy - h / 2 + 22, 32, 32, 0x4a1a1a, 1)
       .setStrokeStyle(2, 0xff5577)
       .setInteractive({ useHandCursor: true });
     closeBg.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       pointer.event.stopPropagation();
       this.closeRecipes();
     });
-    const closeText = this.add.text(cx + w / 2 - 24, cy - h / 2 + 24, 'X', {
-      fontFamily: 'monospace', fontSize: '18px', color: '#ff5577',
+    const closeText = this.add.text(cx + w / 2 - 22, cy - h / 2 + 22, 'X', {
+      fontFamily: 'monospace', fontSize: '16px', color: '#ff5577',
     }).setOrigin(0.5);
     container.add([closeBg, closeText]);
   }
