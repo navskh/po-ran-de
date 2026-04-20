@@ -170,9 +170,11 @@ const BASE_RARITY: Record<number, 1 | 2 | 3 | 4 | 5 | 6> = {
   10: 1, 13: 1, 16: 1, 19: 1,
   1: 2, 4: 2, 7: 2, 25: 2, 35: 2, 37: 2, 39: 2, 50: 2, 52: 2,
   58: 2, 60: 2, 63: 2, 66: 2, 74: 2, 92: 2, 129: 2, 95: 2,
-  83: 3, 132: 3, 133: 3, 147: 3,
-  106: 3, 107: 3, 108: 3, 113: 3, 114: 3, 115: 3, 122: 3, 123: 3,
-  124: 3, 125: 3, 126: 3, 127: 3, 128: 3, 137: 3, 138: 3, 140: 3,
+  83: 3, 147: 3,
+  106: 3, 107: 3, 108: 3, 113: 3, 114: 3, 115: 3, 122: 3,
+  125: 3, 126: 3, 127: 3, 128: 3, 137: 3, 138: 3, 140: 3,
+  // rarity 4 (희귀): 메타몽/이브이/고급 전설 재료들
+  132: 4, 133: 4, 123: 4, 124: 4,
   134: 4, 135: 4, 136: 4, 196: 4, 197: 4, 470: 4, 471: 4,
   131: 4, 142: 4, 143: 4,
   144: 5, 145: 5, 146: 5, 150: 5, 151: 5,
@@ -211,7 +213,7 @@ const RARITY_BASE_STATS: Record<number, { hp: number; attack: number; range: num
   3: { hp: 220,  attack: 38,   range: 280, attackSpeed: 1.2 },
   4: { hp: 380,  attack: 65,   range: 300, attackSpeed: 1.3 },
   5: { hp: 1100, attack: 200,  range: 400, attackSpeed: 1.8 },
-  6: { hp: 3500, attack: 1200, range: 500, attackSpeed: 2.2 },
+  6: { hp: 3500, attack: 700, range: 500, attackSpeed: 2.2 },
 };
 
 export const RARITY_COLORS: Record<number, number> = {
@@ -238,6 +240,19 @@ const CUSTOM_MAX_LEVEL: Record<number, number> = {
   147: 3, 148: 4, // 미뇽 → 신뇽 → 망나뇽
   129: 3,         // 잉어킹 → 갸라도스 (20레벨)
   63: 3, 64: 3,   // 캐이시 → 윤겔라 → 후딘
+  // 합성으로 만든 단독 포켓몬은 3까지 레벨업 (합성 보상)
+  143: 3,  // 잠만보
+  131: 3,  // 라프라스
+  106: 3,  // 시라소몬
+  107: 3,  // 홍수몬
+  108: 3,  // 내루미
+  114: 3,  // 덩쿠리
+  115: 3,  // 캥카
+  122: 3,  // 마임맨
+  124: 3,  // 루주라
+  127: 3,  // 쁘사이저
+  128: 3,  // 켄타로스
+  142: 3,  // 프테라
 };
 
 export function getMaxLevel(stage: number, id?: number): number {
@@ -250,12 +265,14 @@ export function getMaxLevel(stage: number, id?: number): number {
   return 5;
 }
 
+// 5성은 합성으로만 획득 (기본 뽑기 풀에 없어서 dead code였음)
+// → 4%를 4성에 통합
 export const GACHA_RATES: Record<number, number> = {
   1: 0.55,
   2: 0.30,
   3: 0.11,
-  4: 0.035,
-  5: 0.005,
+  4: 0.04,
+  5: 0,
 };
 
 const NEXT_EVOLUTION: Record<number, number | null> = {};

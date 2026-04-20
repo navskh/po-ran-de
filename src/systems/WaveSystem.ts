@@ -132,7 +132,8 @@ export class WaveSystem {
       const cfg = WAVES[this.state.wave - 1];
       const hpMult = cfg ? cfg.hpMult : 1;
       const goldMult = 1 + (hpMult - 1) * 0.4;
-      const baseGold = enemy.isBoss ? 80 : ENEMY_KILL_GOLD;
+      // 보스 골드는 wave 비례: 80 + wave*12 (wave 5 = 140G, wave 50 = 680G)
+      const baseGold = enemy.isBoss ? (80 + this.state.wave * 12) : ENEMY_KILL_GOLD;
       this.state.addGold(Math.max(1, Math.floor(baseGold * goldMult)));
       enemy.destroy();
     }
