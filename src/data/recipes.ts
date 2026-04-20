@@ -50,6 +50,8 @@ export const RECIPE_PAGES: IRecipePage[] = [
       { ingredients: [131, 62],  result: 245, ko: '스이쿤' },   // 라프라스(단독 완전체) + 강챙이 (물+물)
       // 벌레 신화 (5세대)
       { ingredients: [127, 123], result: 649, ko: '게노세크트' }, // 쁘사이저 + 스라크 (벌레+벌레/비행)
+      // 격투 전설 (5세대 정의의 3인방 리더)
+      { ingredients: [107, 106], result: 638, ko: '코바르온' },   // 홍수몬(펀치) + 시라소몬(킥) (격투+격투)
     ],
   },
   {
