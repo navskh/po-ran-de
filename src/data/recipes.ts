@@ -26,8 +26,6 @@ export const RECIPE_PAGES: IRecipePage[] = [
       { ingredients: [66, 52],  result: 107, ko: '홍수몬' },
       { ingredients: [52, 19],  result: 128, ko: '켄타로스' },
       { ingredients: [35, 39],  result: 113, ko: '럭키' },
-      { ingredients: [1, 10],   result: 114, ko: '덩쿠리' },
-      { ingredients: [52, 39],  result: 108, ko: '내루미' },
       { ingredients: [35, 52],  result: 115, ko: '캥카' },
     ],
   },
@@ -42,8 +40,6 @@ export const RECIPE_PAGES: IRecipePage[] = [
       { ingredients: [65, 68],  result: 150, ko: '뮤츠' },      // 후딘+괴력몬 (에스퍼+격투)
       { ingredients: [149, 65], result: 151, ko: '뮤' },        // 망나뇽+후딘 (드래곤+에스퍼)
       // 화석/고대 단독
-      { ingredients: [75, 8],   result: 138, ko: '암나이트' },
-      { ingredients: [61, 75],  result: 140, ko: '투구' },
       { ingredients: [17, 5],   result: 142, ko: '프테라' },
       { ingredients: [14, 17],  result: 123, ko: '스라크' },
       { ingredients: [64, 8],   result: 124, ko: '루주라' },
@@ -58,11 +54,11 @@ export const RECIPE_PAGES: IRecipePage[] = [
     title: '신화 (★5)',
     subtitle: '최종 진화체 / 전설 / 드래곤 페어 → 신화 포켓몬',
     recipes: [
-      { ingredients: [6, 18],    result: 250, ko: '호오' },       // 리자몽+피죤투 (불/비행+노말/비행)
+      { ingredients: [146, 18],  result: 250, ko: '호오' },       // 파이어+피죤투 (불/비행 신화 승격)
       { ingredients: [65, 18],   result: 249, ko: '루기아' },     // 후딘+피죤투 (에스퍼+비행)
       { ingredients: [65, 3],    result: 251, ko: '셀레비' },     // 후딘+이상해꽃 (에스퍼+풀)
       { ingredients: [149, 18],  result: 384, ko: '레쿠쟈' },     // 망나뇽+피죤투 (드래곤/비행)
-      { ingredients: [147, 148], result: 483, ko: '디아루가' },   // 미뇽+신뇽 (드래곤+드래곤)
+      { ingredients: [149, 150], result: 483, ko: '디아루가' },   // 망나뇽+뮤츠 (드래곤+에스퍼 = 시간)
       { ingredients: [149, 130], result: 484, ko: '펄기아' },     // 망나뇽+갸라도스 (드래곤/물)
       { ingredients: [150, 151], result: 493, ko: '아르세우스' }, // 뮤츠+뮤 (에스퍼 신화)
       // 단독 합성 result 페어로 신화
