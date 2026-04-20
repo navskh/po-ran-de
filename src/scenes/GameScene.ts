@@ -10,6 +10,7 @@ import {
 import { RECIPES, IRecipe } from '../data/recipes';
 import { getPokemon, rollRandomPokemonId, rollAdvancedRandomPokemonId, getSpriteKey } from '../data/pokemonData';
 import { RECIPE_PAGES } from '../data/recipes';
+import { SYNERGY_GROUPS } from '../data/synergies';
 void RECIPES;
 import { GameState } from '../state/GameState';
 import { GridSystem } from '../systems/GridSystem';
@@ -68,6 +69,7 @@ export class GameScene extends Phaser.Scene {
     this.drawPath();
     this.drawGrid();
     this.createTrashZone();
+    this.createSortButtons();
     this.drawNextWavePreview();
 
     new Hud(this, this.state);
@@ -91,7 +93,10 @@ export class GameScene extends Phaser.Scene {
     this.input.mouse?.disableContextMenu();
     this.events.on('unitClick', (unit: TowerUnit) => this.openDetails(unit));
     this.events.on('unitRightClick', (unit: TowerUnit) => this.discardUnit(unit));
-    this.events.on('gridChanged', () => this.refreshPossibleMatches());
+    this.events.on('gridChanged', () => {
+      this.grid.updateSynergies();
+      this.refreshPossibleMatches();
+    });
     this.input.keyboard?.on('keydown-ESC', () => {
       this.closeDetails();
       this.closeRecipes();
@@ -526,6 +531,41 @@ export class GameScene extends Phaser.Scene {
     this.trashZone.setDepth(900);
   }
 
+  private createSortButtons() {
+    const x = TRASH_X;
+    const attackY = TRASH_Y + TRASH_H / 2 + 30;
+    const typeY = attackY + 50;
+
+    const makeBtn = (y: number, label: string, fill: number, stroke: number, onClick: () => void) => {
+      const rect = this.add.rectangle(x, y, TRASH_W, 40, fill, 0.6)
+        .setStrokeStyle(2, stroke, 0.85)
+        .setInteractive({ useHandCursor: true });
+      const text = this.add.text(x, y - 8, '정렬', {
+        fontFamily: 'monospace', fontSize: '10px', color: '#ddddee',
+      }).setOrigin(0.5);
+      const mode = this.add.text(x, y + 6, label, {
+        fontFamily: 'monospace', fontSize: '11px', color: '#ffd34d',
+      }).setOrigin(0.5);
+      rect.on('pointerover', () => rect.setFillStyle(stroke, 0.6));
+      rect.on('pointerout', () => rect.setFillStyle(fill, 0.6));
+      rect.on('pointerdown', onClick);
+      void text; void mode;
+    };
+
+    makeBtn(attackY, '공격순', 0x1a3a3a, 0x44aaaa, () => this.handleSort('attack'));
+    makeBtn(typeY, '타입순', 0x3a1a3a, 0xaa44aa, () => this.handleSort('type'));
+  }
+
+  private handleSort(mode: 'attack' | 'type') {
+    const changed = this.grid.sortAndRearrange(this, mode);
+    if (!changed) {
+      this.flashMessage('정렬할 포켓몬 없음', '#ff7b8c');
+      return;
+    }
+    this.flashMessage(mode === 'attack' ? '공격력 순 정렬' : '타입 순 정렬', '#7afcc9');
+    this.events.emit('gridChanged');
+  }
+
   private isInTrash(x: number, y: number): boolean {
     return Math.abs(x - TRASH_X) < TRASH_W / 2 && Math.abs(y - TRASH_Y) < TRASH_H / 2;
   }
@@ -773,7 +813,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private shiftRecipesPage(delta: number) {
-    const total = RECIPE_PAGES.length;
+    const total = RECIPE_PAGES.length + 1; // +1 for synergy page
     this.recipesPageIndex = (this.recipesPageIndex + delta + total) % total;
     this.renderRecipesPage();
   }
@@ -782,6 +822,10 @@ export class GameScene extends Phaser.Scene {
     if (this.recipesContainer) {
       this.recipesContainer.destroy();
       this.recipesContainer = undefined;
+    }
+    if (this.recipesPageIndex >= RECIPE_PAGES.length) {
+      this.renderSynergyPage();
+      return;
     }
 
     const cx = GAME_WIDTH / 2;
@@ -879,7 +923,7 @@ export class GameScene extends Phaser.Scene {
       fontFamily: 'monospace', fontSize: '18px', color: '#aab0ff',
     }).setOrigin(0.5);
 
-    const pageText = this.add.text(cx, pagerY, `${this.recipesPageIndex + 1} / ${RECIPE_PAGES.length}`, {
+    const pageText = this.add.text(cx, pagerY, `${this.recipesPageIndex + 1} / ${RECIPE_PAGES.length + 1}`, {
       fontFamily: 'monospace', fontSize: '13px', color: '#ddddee',
     }).setOrigin(0.5);
 
@@ -915,5 +959,125 @@ export class GameScene extends Phaser.Scene {
       this.recipesContainer.destroy();
       this.recipesContainer = undefined;
     }
+  }
+
+  private renderSynergyPage() {
+    const cx = GAME_WIDTH / 2;
+    const cy = (HUD_HEIGHT + GAME_HEIGHT - CONTROL_HEIGHT) / 2;
+    const w = 980;
+    const h = 540;
+
+    const container = this.add.container(0, 0).setDepth(2500);
+    this.recipesContainer = container;
+
+    const overlay = this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.78)
+      .setOrigin(0, 0)
+      .setInteractive();
+    overlay.on('pointerdown', () => this.closeRecipes());
+    container.add(overlay);
+
+    const card = this.add.rectangle(cx, cy, w, h, 0x1a1c2f, 1)
+      .setStrokeStyle(2, 0x66ddff)
+      .setInteractive();
+    card.on('pointerdown', (pointer: Phaser.Input.Pointer) => pointer.event.stopPropagation());
+    container.add(card);
+
+    container.add(this.add.text(cx, cy - h / 2 + 26, '시너지', {
+      fontFamily: 'sans-serif', fontSize: '20px', color: '#66ddff',
+    }).setOrigin(0.5));
+
+    container.add(this.add.text(cx, cy - h / 2 + 50, '특정 조합이 필드에 있으면 자동 발동 (공격/체력/속도 버프)', {
+      fontFamily: 'monospace', fontSize: '11px', color: '#aab0d4',
+    }).setOrigin(0.5));
+
+    const active = this.grid.updateSynergies();
+    const activeIds = new Set(active.map((a) => a.group.id));
+
+    const rowHeight = 62;
+    const startY = cy - h / 2 + 90;
+    const leftX = cx - w / 2 + 30;
+
+    for (let i = 0; i < SYNERGY_GROUPS.length; i++) {
+      const g = SYNERGY_GROUPS[i];
+      const yPos = startY + i * rowHeight;
+      const on = activeIds.has(g.id);
+
+      const rowBg = this.add.rectangle(cx, yPos + 8, w - 40, rowHeight - 8, on ? 0x1a3a3a : 0x232540, on ? 0.6 : 0.4)
+        .setStrokeStyle(1, on ? 0x66ddff : 0x44476a, 0.8);
+      container.add(rowBg);
+
+      // member sprites (왼쪽, 최대 8개)
+      const maxShow = Math.min(g.memberIds.length, 8);
+      for (let k = 0; k < maxShow; k++) {
+        const mid = g.memberIds[k];
+        if (this.textures.exists(getSpriteKey(mid))) {
+          const img = this.add.image(leftX + k * 34, yPos + 8, getSpriteKey(mid)).setScale(0.55);
+          img.setAlpha(on ? 1 : 0.4);
+          container.add(img);
+        }
+      }
+
+      // 이름
+      const nameX = leftX + maxShow * 34 + 12;
+      container.add(this.add.text(nameX, yPos, g.name, {
+        fontFamily: 'sans-serif', fontSize: '14px', color: on ? '#ffd34d' : '#aab0d4',
+      }).setOrigin(0, 0.5));
+
+      // 설명
+      container.add(this.add.text(nameX, yPos + 18, g.description, {
+        fontFamily: 'monospace', fontSize: '10px', color: on ? '#7afcc9' : '#8890a8',
+      }).setOrigin(0, 0.5));
+
+      // 활성 뱃지
+      const badgeColor = on ? 0x66ddff : 0x44476a;
+      const badgeBg = this.add.rectangle(cx + w / 2 - 60, yPos + 8, 70, 26, badgeColor, on ? 1 : 0.3)
+        .setStrokeStyle(1, badgeColor, 1);
+      const badgeText = this.add.text(cx + w / 2 - 60, yPos + 8, on ? 'ON' : 'OFF', {
+        fontFamily: 'monospace', fontSize: '12px', color: on ? '#07080f' : '#aab0d4',
+      }).setOrigin(0.5);
+      container.add([badgeBg, badgeText]);
+    }
+
+    // pager
+    const pagerY = cy + h / 2 - 26;
+    const prevBg = this.add.rectangle(cx - 80, pagerY, 32, 28, 0x2a2f55)
+      .setStrokeStyle(2, 0x6680ff)
+      .setInteractive({ useHandCursor: true });
+    prevBg.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      p.event.stopPropagation();
+      this.shiftRecipesPage(-1);
+    });
+    const prevText = this.add.text(cx - 80, pagerY, '‹', {
+      fontFamily: 'monospace', fontSize: '18px', color: '#aab0ff',
+    }).setOrigin(0.5);
+
+    const pageText = this.add.text(cx, pagerY, `${this.recipesPageIndex + 1} / ${RECIPE_PAGES.length + 1}`, {
+      fontFamily: 'monospace', fontSize: '13px', color: '#ddddee',
+    }).setOrigin(0.5);
+
+    const nextBg = this.add.rectangle(cx + 80, pagerY, 32, 28, 0x2a2f55)
+      .setStrokeStyle(2, 0x6680ff)
+      .setInteractive({ useHandCursor: true });
+    nextBg.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      p.event.stopPropagation();
+      this.shiftRecipesPage(1);
+    });
+    const nextText = this.add.text(cx + 80, pagerY, '›', {
+      fontFamily: 'monospace', fontSize: '18px', color: '#aab0ff',
+    }).setOrigin(0.5);
+
+    container.add([prevBg, prevText, pageText, nextBg, nextText]);
+
+    const closeBg = this.add.rectangle(cx + w / 2 - 22, cy - h / 2 + 22, 32, 32, 0x4a1a1a, 1)
+      .setStrokeStyle(2, 0xff5577)
+      .setInteractive({ useHandCursor: true });
+    closeBg.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      p.event.stopPropagation();
+      this.closeRecipes();
+    });
+    const closeText = this.add.text(cx + w / 2 - 22, cy - h / 2 + 22, 'X', {
+      fontFamily: 'monospace', fontSize: '16px', color: '#ff5577',
+    }).setOrigin(0.5);
+    container.add([closeBg, closeText]);
   }
 }

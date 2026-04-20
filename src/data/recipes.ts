@@ -84,6 +84,20 @@ export const RECIPE_PAGES: IRecipePage[] = [
       { ingredients: [133, 124], result: 471, ko: '글레이시아' },
     ],
   },
+  {
+    title: '이브이 진화체 조합',
+    subtitle: '이브이 진화체 페어 → 전설 포켓몬',
+    recipes: [
+      { ingredients: [134, 135], result: 245, ko: '스이쿤' },   // 샤미드 + 쥬피썬더 (물+전기)
+      { ingredients: [136, 135], result: 243, ko: '라이코' },   // 부스터 + 쥬피썬더 (불+전기)
+      { ingredients: [136, 134], result: 244, ko: '엔테이' },   // 부스터 + 샤미드 (불+물)
+      { ingredients: [196, 197], result: 150, ko: '뮤츠' },     // 에브이 + 블래키 (에스퍼+악)
+      { ingredients: [470, 471], result: 251, ko: '셀레비' },   // 리피아 + 글레이시아 (풀+얼음)
+      { ingredients: [197, 134], result: 249, ko: '루기아' },   // 블래키 + 샤미드 (악+물)
+      { ingredients: [136, 470], result: 250, ko: '호오' },     // 부스터 + 리피아 (불+풀)
+      { ingredients: [471, 135], result: 144, ko: '프리져' },   // 글레이시아 + 쥬피썬더 (얼음+전기)
+    ],
+  },
 ];
 
 export const RECIPES: IRecipe[] = RECIPE_PAGES.flatMap((p) => p.recipes);

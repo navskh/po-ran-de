@@ -10,10 +10,14 @@ export class TowerUnit extends Phaser.GameObjects.Container {
   row: number;
   hpCurrent: number;
   bg!: Phaser.GameObjects.Rectangle;
+  buffAttack = 1;
+  buffHp = 1;
+  buffAttackSpeed = 1;
   private sprite?: Phaser.GameObjects.Image;
   private nameText!: Phaser.GameObjects.Text;
   private starsText!: Phaser.GameObjects.Text;
   private levelText!: Phaser.GameObjects.Text;
+  private buffMark?: Phaser.GameObjects.Text;
   private lastAttackAt = 0;
   private rangeCircle?: Phaser.GameObjects.Arc;
   private didDrag = false;
@@ -211,18 +215,45 @@ export class TowerUnit extends Phaser.GameObjects.Container {
   computeAttack(): number {
     const lvBonus = 1 + (this.level - 1) * 0.18;
     const starBonus = 1 + this.extraStars * 0.4;
-    return Math.floor(this.pokemon.attack * lvBonus * starBonus);
+    return Math.floor(this.pokemon.attack * lvBonus * starBonus * this.buffAttack);
   }
 
   computeHp(): number {
     const lvBonus = 1 + (this.level - 1) * 0.15;
     const starBonus = 1 + this.extraStars * 0.3;
-    return Math.floor(this.pokemon.hp * lvBonus * starBonus);
+    return Math.floor(this.pokemon.hp * lvBonus * starBonus * this.buffHp);
   }
 
   canAttack(now: number): boolean {
-    const cooldownMs = 1000 / this.pokemon.attackSpeed;
+    const cooldownMs = 1000 / (this.pokemon.attackSpeed * this.buffAttackSpeed);
     return now - this.lastAttackAt >= cooldownMs;
+  }
+
+  setBuff(atk: number, hp: number, spd: number) {
+    const prevMaxHp = this.computeHp();
+    this.buffAttack = atk;
+    this.buffHp = hp;
+    this.buffAttackSpeed = spd;
+    const newMaxHp = this.computeHp();
+    const ratio = prevMaxHp > 0 ? this.hpCurrent / prevMaxHp : 1;
+    this.hpCurrent = Math.min(newMaxHp, Math.max(1, Math.floor(newMaxHp * ratio)));
+    this.refreshBuffMark();
+  }
+
+  private refreshBuffMark() {
+    const hasBuff = this.buffAttack > 1.001 || this.buffHp > 1.001 || this.buffAttackSpeed > 1.001;
+    if (hasBuff) {
+      if (!this.buffMark && this.scene) {
+        this.buffMark = this.scene.add.text(CELL_W / 2 - 10, -CELL_H / 2 + 8, '⚡', {
+          fontFamily: 'sans-serif', fontSize: '14px', color: '#ffd34d',
+        }).setOrigin(0.5);
+        this.add(this.buffMark);
+      } else if (this.buffMark) {
+        this.buffMark.setVisible(true);
+      }
+    } else if (this.buffMark) {
+      this.buffMark.setVisible(false);
+    }
   }
 
   markAttacked(now: number) {

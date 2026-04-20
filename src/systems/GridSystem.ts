@@ -1,5 +1,9 @@
+import Phaser from 'phaser';
 import { GRID_COLS, GRID_ROWS, cellCenter, cellScale, isValidCell, INITIAL_UNLOCKED_COLS } from '../game/balance';
 import { TowerUnit } from '../entities/TowerUnit';
+import { SYNERGY_GROUPS, IActiveSynergy } from '../data/synergies';
+
+export type SortMode = 'attack' | 'type';
 
 export class GridSystem {
   cells: (TowerUnit | null)[][] = [];
@@ -112,5 +116,84 @@ export class GridSystem {
       if (u) towers.push(u);
     }
     return towers;
+  }
+
+  updateSynergies(): IActiveSynergy[] {
+    const towers = this.getAllTowers();
+    const idSet = new Set<number>();
+    for (const t of towers) idSet.add(t.pokemon.id);
+
+    const active: IActiveSynergy[] = [];
+    for (const group of SYNERGY_GROUPS) {
+      if (group.requireAll) {
+        if (group.memberIds.every((id) => idSet.has(id))) {
+          active.push({ group, count: group.memberIds.length });
+        }
+      } else {
+        const count = towers.filter((t) => group.memberIds.includes(t.pokemon.id)).length;
+        if (count > 0) active.push({ group, count });
+      }
+    }
+
+    // 각 유닛에 buff 적용
+    for (const t of towers) {
+      let atk = 1, hp = 1, spd = 1;
+      for (const a of active) {
+        if (!a.group.memberIds.includes(t.pokemon.id)) continue;
+        const reps = a.group.requireAll ? 1 : a.count;
+        if (a.group.effect.attack) atk *= Math.pow(a.group.effect.attack, reps);
+        if (a.group.effect.hp) hp *= Math.pow(a.group.effect.hp, reps);
+        if (a.group.effect.attackSpeed) spd *= Math.pow(a.group.effect.attackSpeed, reps);
+      }
+      t.setBuff(atk, hp, spd);
+    }
+    return active;
+  }
+
+  sortAndRearrange(scene: Phaser.Scene, mode: SortMode): boolean {
+    const towers = this.getAllTowers();
+    if (towers.length === 0) return false;
+
+    const sorted = [...towers].sort((a, b) => {
+      if (mode === 'type') {
+        const ta = a.pokemon.types[0];
+        const tb = b.pokemon.types[0];
+        if (ta !== tb) return ta.localeCompare(tb);
+      }
+      return b.computeAttack() - a.computeAttack();
+    });
+
+    const validCells: { col: number; row: number }[] = [];
+    for (let r = 0; r < GRID_ROWS; r++) {
+      for (let c = 0; c < Math.min(this.unlockedCols, GRID_COLS); c++) {
+        if (!isValidCell(c, r)) continue;
+        validCells.push({ col: c, row: r });
+      }
+    }
+
+    for (let r = 0; r < GRID_ROWS; r++) {
+      for (let c = 0; c < GRID_COLS; c++) {
+        this.cells[r][c] = null;
+      }
+    }
+
+    for (let i = 0; i < sorted.length && i < validCells.length; i++) {
+      const { col, row } = validCells[i];
+      const unit = sorted[i];
+      this.cells[row][col] = unit;
+      unit.col = col;
+      unit.row = row;
+      const { x, y } = cellCenter(col, row);
+      scene.tweens.add({
+        targets: unit,
+        x,
+        y,
+        scale: cellScale(col),
+        duration: 320,
+        ease: 'Quad.out',
+        onUpdate: () => unit.syncRangeCircle(),
+      });
+    }
+    return true;
   }
 }

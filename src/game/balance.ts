@@ -7,7 +7,7 @@ export const GRID_X = 128;
 export const GRID_Y = 130;
 
 export const EXT_COL_COUNT = 2;
-export const EXT_VALID_ROWS: number[] = [1, 2];
+export const EXT_VALID_ROWS: number[] = [0, 1, 2, 3];
 
 export const HUD_HEIGHT = 70;
 export const CONTROL_HEIGHT = 80;
