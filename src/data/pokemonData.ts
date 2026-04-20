@@ -328,14 +328,16 @@ export function getSpriteKey(id: number): string {
   return `pkmn-${id}`;
 }
 
-// 기본 pixel sprite가 이상하거나 없는 메가/특수는 HOME sprite로 폴백
-const HOME_SPRITE_IDS = new Set<number>([10038, 10041]);
+// 기본 pixel sprite가 이상하거나 없는 경우 베이스 포켓몬으로 폴백
+// (HOME sprite는 해상도가 커서 안 맞음, 일반 pixel 대신 base pokemon 사용)
+const SPRITE_FALLBACK: Record<number, number> = {
+  10038: 115, // 메가 캥카 → 캥카 (메가 스프라이트 깨짐)
+  10041: 142, // 메가 프테라 → 프테라 (메가 스프라이트 깨짐)
+};
 
 export function getSpriteUrl(id: number): string {
-  if (HOME_SPRITE_IDS.has(id)) {
-    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${id}.png`;
-  }
-  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+  const actualId = SPRITE_FALLBACK[id] ?? id;
+  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${actualId}.png`;
 }
 
 export const ALL_POKEMON_IDS: number[] = Object.keys(POKEMON_INFO).map(Number);
