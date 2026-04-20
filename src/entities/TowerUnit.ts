@@ -10,6 +10,7 @@ export class TowerUnit extends Phaser.GameObjects.Container {
   row: number;
   hpCurrent: number;
   bg!: Phaser.GameObjects.Rectangle;
+  isMerging = false;
   buffAttack = 1;
   buffHp = 1;
   buffAttackSpeed = 1;
@@ -132,11 +133,11 @@ export class TowerUnit extends Phaser.GameObjects.Container {
   }
 
   isMaxLevel(): boolean {
-    return this.level >= getMaxLevel(this.pokemon.stage);
+    return this.level >= getMaxLevel(this.pokemon.stage, this.pokemon.id);
   }
 
   maxLevel(): number {
-    return getMaxLevel(this.pokemon.stage);
+    return getMaxLevel(this.pokemon.stage, this.pokemon.id);
   }
 
   canEvolve(): boolean {

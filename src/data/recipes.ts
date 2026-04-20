@@ -35,12 +35,12 @@ export const RECIPE_PAGES: IRecipePage[] = [
     title: '단독 합성 — 고급',
     subtitle: '1차 진화체 페어 → 전설 / 강한 단독',
     recipes: [
-      // 1세대 전설 (속성 개연성 기준으로 재설계)
-      { ingredients: [5, 17],   result: 146, ko: '파이어' },    // 리자드+피죤 (불+비행)
-      { ingredients: [26, 17],  result: 145, ko: '썬더' },      // 라이츄+피죤 (전기+비행)
-      { ingredients: [124, 17], result: 144, ko: '프리져' },    // 루주라+피죤 (얼음/에스퍼+비행)
-      { ingredients: [64, 67],  result: 150, ko: '뮤츠' },      // 윤겔라+근육몬 (에스퍼+격투)
-      { ingredients: [148, 64], result: 151, ko: '뮤' },        // 신뇽+윤겔라 (드래곤+에스퍼)
+      // 1세대 전설 (완전체 + 완전체, 속성 기준)
+      { ingredients: [6, 18],   result: 146, ko: '파이어' },    // 리자몽+피죤투 (불+비행)
+      { ingredients: [26, 18],  result: 145, ko: '썬더' },      // 라이츄+피죤투 (전기+비행)
+      { ingredients: [124, 18], result: 144, ko: '프리져' },    // 루주라+피죤투 (얼음/에스퍼+비행)
+      { ingredients: [65, 68],  result: 150, ko: '뮤츠' },      // 후딘+괴력몬 (에스퍼+격투)
+      { ingredients: [149, 65], result: 151, ko: '뮤' },        // 망나뇽+후딘 (드래곤+에스퍼)
       // 화석/고대 단독
       { ingredients: [75, 8],   result: 138, ko: '암나이트' },
       { ingredients: [61, 75],  result: 140, ko: '투구' },
@@ -48,10 +48,10 @@ export const RECIPE_PAGES: IRecipePage[] = [
       { ingredients: [14, 17],  result: 123, ko: '스라크' },
       { ingredients: [64, 8],   result: 124, ko: '루주라' },
       { ingredients: [64, 53],  result: 137, ko: '폴리곤' },
-      // 2세대 전설 트리오 (속성 페어로 재설계)
-      { ingredients: [125, 26],  result: 243, ko: '라이코' },   // 에레브 + 라이츄 (전기+전기)
-      { ingredients: [126, 58],  result: 244, ko: '엔테이' },   // 마그마 + 가디 (불+불)
-      { ingredients: [131, 61],  result: 245, ko: '스이쿤' },   // 라프라스 + 슈륙챙이 (물+물)
+      // 2세대 전설 트리오 (완전체 속성 페어)
+      { ingredients: [125, 26],  result: 243, ko: '라이코' },   // 에레브(단독 완전체) + 라이츄 (전기+전기)
+      { ingredients: [126, 59],  result: 244, ko: '엔테이' },   // 마그마(단독 완전체) + 윈디 (불+불)
+      { ingredients: [131, 62],  result: 245, ko: '스이쿤' },   // 라프라스(단독 완전체) + 강챙이 (물+물)
     ],
   },
   {

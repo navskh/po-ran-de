@@ -29,7 +29,13 @@ export const GACHA_COST = 10;
 export const ADVANCED_GACHA_COST = 50;
 export const ENEMY_KILL_GOLD = 5;
 export const INITIAL_UNLOCKED_COLS = MAIN_GRID_COLS;
-export const EXPAND_COL_COST = 5000;
+export const EXPAND_COL_COST = 500; // legacy
+export const EXPAND_COL_COSTS = [500, 2000]; // col 7 해금, col 8 해금 비용
+
+export function getExpandCost(currentUnlockedCols: number): number {
+  const idx = currentUnlockedCols - MAIN_GRID_COLS;
+  return EXPAND_COL_COSTS[idx] ?? 99999;
+}
 
 export const ENEMY_BASE_SPEED = 110;
 export const SPAWN_INTERVAL_MS = 800;

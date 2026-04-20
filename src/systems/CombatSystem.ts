@@ -35,6 +35,7 @@ export class CombatSystem {
   update(time: number) {
     const towers = this.grid.getAllTowers();
     for (const tower of towers) {
+      if (tower.isMerging) continue;
       if (!tower.canAttack(time)) continue;
       const target = this.findTarget(tower);
       if (!target) continue;
@@ -43,8 +44,7 @@ export class CombatSystem {
   }
 
   private playAttackMotion(tower: TowerUnit) {
-    this.scene.tweens.killTweensOf(tower);
-    tower.setScale(1);
+    // tweens.killTweensOf 제거: performMerge tween 충돌 방지
     this.scene.tweens.add({
       targets: tower,
       scaleX: 1.18,

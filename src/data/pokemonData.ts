@@ -233,7 +233,21 @@ export const RARITY_NAMES: Record<number, string> = {
 
 export const MAX_LEVEL = 5;
 
-export function getMaxLevel(stage: number): number {
+// 특정 포켓몬의 진화 난이도 커스텀 (id별 오버라이드)
+const CUSTOM_MAX_LEVEL: Record<number, number> = {
+  // 빨리 진화 (실제 포켓몬 게임에서 low-level 진화)
+  10: 1, 11: 1,   // 캐터피 → 단데기 → 버터플 (한방)
+  13: 1, 14: 1,   // 뿔충이 → 딱충이 → 독침붕
+  // 느리게 진화 (실제 망나뇽/카이리 류, 55레벨 진화)
+  147: 3, 148: 4, // 미뇽 → 신뇽 → 망나뇽
+  129: 3,         // 잉어킹 → 갸라도스 (20레벨)
+  63: 3, 64: 3,   // 캐이시 → 윤겔라 → 후딘
+};
+
+export function getMaxLevel(stage: number, id?: number): number {
+  if (id !== undefined && CUSTOM_MAX_LEVEL[id] !== undefined) {
+    return CUSTOM_MAX_LEVEL[id];
+  }
   if (stage === 1) return 1;
   if (stage === 2) return 2;
   if (stage === 3) return 3;
@@ -314,7 +328,13 @@ export function getSpriteKey(id: number): string {
   return `pkmn-${id}`;
 }
 
+// 기본 pixel sprite가 이상하거나 없는 메가/특수는 HOME sprite로 폴백
+const HOME_SPRITE_IDS = new Set<number>([10038, 10041]);
+
 export function getSpriteUrl(id: number): string {
+  if (HOME_SPRITE_IDS.has(id)) {
+    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${id}.png`;
+  }
   return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
 }
 
@@ -350,18 +370,16 @@ export const ADVANCED_RECIPE_POOL: number[] = [
 export const ADVANCED_LEGENDARY_POOL: number[] = [144, 145, 146, 150, 151, 243, 244, 245];
 
 export function rollAdvancedRandomPokemonId(): number {
+  // 전설/신화는 조합으로만 (고급 뽑기에서 제거)
   const r = Math.random();
-  if (r < 0.08) {
-    return ADVANCED_LEGENDARY_POOL[Math.floor(Math.random() * ADVANCED_LEGENDARY_POOL.length)];
-  }
   if (r < 0.40) {
     return ADVANCED_RECIPE_POOL[Math.floor(Math.random() * ADVANCED_RECIPE_POOL.length)];
   }
   // 2성 이상 가중 뽑기 (1성 뿔충이/캐터피 등 제외)
   const rr = Math.random();
   let rarity: 2 | 3 | 4;
-  if (rr < 0.60) rarity = 2;
-  else if (rr < 0.90) rarity = 3;
+  if (rr < 0.55) rarity = 2;
+  else if (rr < 0.88) rarity = 3;
   else rarity = 4;
   const candidates = BASE_POKEMON_IDS.filter((id) => BASE_RARITY[id] === rarity);
   if (candidates.length === 0) {
@@ -370,3 +388,4 @@ export function rollAdvancedRandomPokemonId(): number {
   }
   return candidates[Math.floor(Math.random() * candidates.length)];
 }
+void ADVANCED_LEGENDARY_POOL;

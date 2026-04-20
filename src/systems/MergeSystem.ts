@@ -44,6 +44,8 @@ export class MergeSystem {
     }
 
     if (dragged.pokemon.id === METAMON_ID && target.pokemon.id !== METAMON_ID) {
+      // 메타몽은 전설/신화(rarity 5+)에는 적용 불가 (너무 쉽게 별업 방지)
+      if (target.pokemon.rarity >= 5) return { type: 'none' };
       if (target.pokemon.evolvesTo !== null) return { type: 'metamonMerge' };
       return { type: 'metamonStar' };
     }

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../game/config';
-import { CONTROL_HEIGHT, GACHA_COST, ADVANCED_GACHA_COST, EXPAND_COL_COST, GRID_COLS } from '../game/balance';
+import { CONTROL_HEIGHT, GACHA_COST, ADVANCED_GACHA_COST, GRID_COLS, getExpandCost } from '../game/balance';
 import { GameState } from '../state/GameState';
 
 export class ControlPanel extends Phaser.GameObjects.Container {
@@ -35,7 +35,7 @@ export class ControlPanel extends Phaser.GameObjects.Container {
     const recipesBtn = this.makeSmallButton(scene, 70, y, '조합표', 0x4a3f70, 0x8866cc, onRecipes);
     this.add(recipesBtn);
 
-    this.expandBtn = this.makeSmallButton(scene, 185, y, `칸+ ${EXPAND_COL_COST}G`, 0x6a4a3f, 0xcc8866, onExpand);
+    this.expandBtn = this.makeSmallButton(scene, 185, y, `칸+ ${getExpandCost(state.unlockedCols)}G`, 0x6a4a3f, 0xcc8866, onExpand);
     this.expandLabel = this.expandBtn.getData('text') as Phaser.GameObjects.Text;
     this.add(this.expandBtn);
 
@@ -69,9 +69,10 @@ export class ControlPanel extends Phaser.GameObjects.Container {
       this.expandLabel.setText('칸 최대');
       return;
     }
-    const canAfford = gold >= EXPAND_COL_COST;
+    const cost = getExpandCost(this.gameState.unlockedCols);
+    const canAfford = gold >= cost;
     this.expandBtn.setAlpha(canAfford ? 1.0 : 0.5);
-    this.expandLabel.setText(`칸+ ${EXPAND_COL_COST}G`);
+    this.expandLabel.setText(`칸+ ${cost}G`);
   }
 
   private makeButton(

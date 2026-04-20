@@ -4,7 +4,7 @@ import {
   GRID_COLS, GRID_ROWS, CELL_W, CELL_H, GRID_X, GRID_Y,
   HUD_HEIGHT, CONTROL_HEIGHT, cellCenter, cellScale, pointToCell, PATH_WAYPOINTS,
   STARTING_GOLD, STARTING_LIVES, GACHA_COST, ADVANCED_GACHA_COST,
-  INITIAL_UNLOCKED_COLS, EXPAND_COL_COST,
+  INITIAL_UNLOCKED_COLS, EXPAND_COL_COST, getExpandCost,
   MAIN_GRID_COLS, isValidCell,
 } from '../game/balance';
 import { RECIPES, IRecipe } from '../data/recipes';
@@ -255,6 +255,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   private performMerge(dragged: TowerUnit, target: TowerUnit, evalResult: IMergeEvaluation) {
+    dragged.isMerging = true;
+    target.isMerging = true;
     this.tweens.add({
       targets: dragged,
       x: target.x,
@@ -265,9 +267,11 @@ export class GameScene extends Phaser.Scene {
       ease: 'Quad.in',
       onComplete: () => {
         const result = this.mergeSystem.apply(dragged, target);
+        target.isMerging = false;
 
         if (result.type === 'eeveeMerge') {
           target.destroy();
+          dragged.isMerging = false;
           dragged.setAlpha(1).setScale(cellScale(dragged.col));
           this.playLegendaryEffect(dragged);
           this.flashMessage(`이브이 → ${result.eeveeKo}!`, '#7afcc9');
@@ -484,9 +488,11 @@ export class GameScene extends Phaser.Scene {
           const lockText = this.add.text(x, y - 6, 'LOCK', {
             fontFamily: 'monospace', fontSize: '11px', color: '#ff7b8c',
           }).setOrigin(0.5).setDepth(201);
-          const costText = this.add.text(x, y + 10, `${EXPAND_COL_COST}G`, {
+          const colCost = c === MAIN_GRID_COLS ? 500 : 2000;
+          const costText = this.add.text(x, y + 10, `${colCost}G`, {
             fontFamily: 'monospace', fontSize: '10px', color: '#ffd34d',
           }).setOrigin(0.5).setDepth(201);
+          void EXPAND_COL_COST;
           this.lockOverlays.push({ col: c, row: r, group: [overlay, lockText, costText] });
         }
       }
@@ -495,7 +501,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   private handleExpandCol() {
-    if (!this.state.expandCol(EXPAND_COL_COST, GRID_COLS)) {
+    const cost = getExpandCost(this.state.unlockedCols);
+    if (!this.state.expandCol(cost, GRID_COLS)) {
       this.flashMessage('골드 부족 또는 최대 확장 도달', '#ff7b8c');
     }
   }
@@ -813,7 +820,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private shiftRecipesPage(delta: number) {
-    const total = RECIPE_PAGES.length + 1; // +1 for synergy page
+    const total = RECIPE_PAGES.length + 2; // +1 synergy, +1 probability
     this.recipesPageIndex = (this.recipesPageIndex + delta + total) % total;
     this.renderRecipesPage();
   }
@@ -823,8 +830,12 @@ export class GameScene extends Phaser.Scene {
       this.recipesContainer.destroy();
       this.recipesContainer = undefined;
     }
-    if (this.recipesPageIndex >= RECIPE_PAGES.length) {
+    if (this.recipesPageIndex === RECIPE_PAGES.length) {
       this.renderSynergyPage();
+      return;
+    }
+    if (this.recipesPageIndex === RECIPE_PAGES.length + 1) {
+      this.renderProbabilityPage();
       return;
     }
 
@@ -923,7 +934,7 @@ export class GameScene extends Phaser.Scene {
       fontFamily: 'monospace', fontSize: '18px', color: '#aab0ff',
     }).setOrigin(0.5);
 
-    const pageText = this.add.text(cx, pagerY, `${this.recipesPageIndex + 1} / ${RECIPE_PAGES.length + 1}`, {
+    const pageText = this.add.text(cx, pagerY, `${this.recipesPageIndex + 1} / ${RECIPE_PAGES.length + 2}`, {
       fontFamily: 'monospace', fontSize: '13px', color: '#ddddee',
     }).setOrigin(0.5);
 
@@ -959,6 +970,136 @@ export class GameScene extends Phaser.Scene {
       this.recipesContainer.destroy();
       this.recipesContainer = undefined;
     }
+  }
+
+  private renderProbabilityPage() {
+    const cx = GAME_WIDTH / 2;
+    const cy = (HUD_HEIGHT + GAME_HEIGHT - CONTROL_HEIGHT) / 2;
+    const w = 980;
+    const h = 540;
+
+    const container = this.add.container(0, 0).setDepth(2500);
+    this.recipesContainer = container;
+
+    const overlay = this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.78)
+      .setOrigin(0, 0)
+      .setInteractive();
+    overlay.on('pointerdown', () => this.closeRecipes());
+    container.add(overlay);
+
+    const card = this.add.rectangle(cx, cy, w, h, 0x1a1c2f, 1)
+      .setStrokeStyle(2, 0xffaa66)
+      .setInteractive();
+    card.on('pointerdown', (p: Phaser.Input.Pointer) => p.event.stopPropagation());
+    container.add(card);
+
+    container.add(this.add.text(cx, cy - h / 2 + 26, '뽑기 확률', {
+      fontFamily: 'sans-serif', fontSize: '20px', color: '#ffaa66',
+    }).setOrigin(0.5));
+
+    const colW = w / 2;
+    const leftX = cx - colW / 2;
+    const rightX = cx + colW / 2;
+    const startY = cy - h / 2 + 70;
+
+    // 기본 뽑기
+    container.add(this.add.text(leftX, startY, '기본 뽑기 (10G)', {
+      fontFamily: 'sans-serif', fontSize: '18px', color: '#6680ff',
+    }).setOrigin(0.5));
+    container.add(this.add.text(leftX, startY + 28, '전설/단독 합성 result 제외', {
+      fontFamily: 'monospace', fontSize: '11px', color: '#aab0d4',
+    }).setOrigin(0.5));
+
+    const basicRates = [
+      { label: 'C (1성)', chance: '55%', color: '#9aa0c5' },
+      { label: 'U (2성)', chance: '30%', color: '#66cc66' },
+      { label: 'R (3성)', chance: '11%', color: '#4488ff' },
+      { label: 'E (4성)', chance: '3.5%', color: '#aa55ee' },
+      { label: 'L (5성)', chance: '0.5%', color: '#ff9933' },
+    ];
+    for (let i = 0; i < basicRates.length; i++) {
+      const y = startY + 60 + i * 30;
+      container.add(this.add.text(leftX - 80, y, basicRates[i].label, {
+        fontFamily: 'monospace', fontSize: '14px', color: basicRates[i].color,
+      }).setOrigin(0, 0.5));
+      container.add(this.add.text(leftX + 80, y, basicRates[i].chance, {
+        fontFamily: 'monospace', fontSize: '14px', color: '#ddddee',
+      }).setOrigin(1, 0.5));
+    }
+
+    // 고급 뽑기
+    container.add(this.add.text(rightX, startY, '고급 뽑기 (50G)', {
+      fontFamily: 'sans-serif', fontSize: '18px', color: '#aa66ff',
+    }).setOrigin(0.5));
+    container.add(this.add.text(rightX, startY + 28, '전설 제외 · 단독 result + 2~4성', {
+      fontFamily: 'monospace', fontSize: '11px', color: '#aab0d4',
+    }).setOrigin(0.5));
+
+    const advRates = [
+      { label: '단독 합성 result (20종)', chance: '40%', color: '#ffd34d' },
+      { label: '2성 기본 풀', chance: '33%', color: '#66cc66' },
+      { label: '3성 기본 풀', chance: '20%', color: '#4488ff' },
+      { label: '4성 기본 풀', chance: '7%', color: '#aa55ee' },
+    ];
+    for (let i = 0; i < advRates.length; i++) {
+      const y = startY + 60 + i * 30;
+      container.add(this.add.text(rightX - 120, y, advRates[i].label, {
+        fontFamily: 'monospace', fontSize: '13px', color: advRates[i].color,
+      }).setOrigin(0, 0.5));
+      container.add(this.add.text(rightX + 120, y, advRates[i].chance, {
+        fontFamily: 'monospace', fontSize: '14px', color: '#ddddee',
+      }).setOrigin(1, 0.5));
+    }
+
+    // 하단 안내
+    const noteY = cy + h / 2 - 80;
+    container.add(this.add.text(cx, noteY, '※ 전설/신화는 조합으로만 획득 가능', {
+      fontFamily: 'monospace', fontSize: '12px', color: '#ff9933',
+    }).setOrigin(0.5));
+    container.add(this.add.text(cx, noteY + 20, '※ 단독 합성 result: 잠만보/마그마/쁘사이저/롱스톤 등 20종', {
+      fontFamily: 'monospace', fontSize: '11px', color: '#aab0d4',
+    }).setOrigin(0.5));
+
+    // pager
+    const pagerY = cy + h / 2 - 26;
+    const prevBg = this.add.rectangle(cx - 80, pagerY, 32, 28, 0x2a2f55)
+      .setStrokeStyle(2, 0x6680ff)
+      .setInteractive({ useHandCursor: true });
+    prevBg.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      p.event.stopPropagation();
+      this.shiftRecipesPage(-1);
+    });
+    const prevText = this.add.text(cx - 80, pagerY, '‹', {
+      fontFamily: 'monospace', fontSize: '18px', color: '#aab0ff',
+    }).setOrigin(0.5);
+
+    const pageText = this.add.text(cx, pagerY, `${this.recipesPageIndex + 1} / ${RECIPE_PAGES.length + 2}`, {
+      fontFamily: 'monospace', fontSize: '13px', color: '#ddddee',
+    }).setOrigin(0.5);
+
+    const nextBg = this.add.rectangle(cx + 80, pagerY, 32, 28, 0x2a2f55)
+      .setStrokeStyle(2, 0x6680ff)
+      .setInteractive({ useHandCursor: true });
+    nextBg.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      p.event.stopPropagation();
+      this.shiftRecipesPage(1);
+    });
+    const nextText = this.add.text(cx + 80, pagerY, '›', {
+      fontFamily: 'monospace', fontSize: '18px', color: '#aab0ff',
+    }).setOrigin(0.5);
+    container.add([prevBg, prevText, pageText, nextBg, nextText]);
+
+    const closeBg = this.add.rectangle(cx + w / 2 - 22, cy - h / 2 + 22, 32, 32, 0x4a1a1a, 1)
+      .setStrokeStyle(2, 0xff5577)
+      .setInteractive({ useHandCursor: true });
+    closeBg.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      p.event.stopPropagation();
+      this.closeRecipes();
+    });
+    const closeText = this.add.text(cx + w / 2 - 22, cy - h / 2 + 22, 'X', {
+      fontFamily: 'monospace', fontSize: '16px', color: '#ff5577',
+    }).setOrigin(0.5);
+    container.add([closeBg, closeText]);
   }
 
   private renderSynergyPage() {
@@ -1051,7 +1192,7 @@ export class GameScene extends Phaser.Scene {
       fontFamily: 'monospace', fontSize: '18px', color: '#aab0ff',
     }).setOrigin(0.5);
 
-    const pageText = this.add.text(cx, pagerY, `${this.recipesPageIndex + 1} / ${RECIPE_PAGES.length + 1}`, {
+    const pageText = this.add.text(cx, pagerY, `${this.recipesPageIndex + 1} / ${RECIPE_PAGES.length + 2}`, {
       fontFamily: 'monospace', fontSize: '13px', color: '#ddddee',
     }).setOrigin(0.5);
 
