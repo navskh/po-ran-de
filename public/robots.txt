@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://po-ran-de.vercel.app/sitemap.xml
+Sitemap: https://porande.vercel.app/sitemap.xml

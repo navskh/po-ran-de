@@ -35,12 +35,12 @@ export const RECIPE_PAGES: IRecipePage[] = [
     title: '단독 합성 — 고급',
     subtitle: '1차 진화체 페어 → 전설 / 강한 단독',
     recipes: [
-      // 1세대 전설
-      { ingredients: [5, 17],   result: 146, ko: '파이어' },
-      { ingredients: [26, 61],  result: 145, ko: '썬더' },
-      { ingredients: [38, 2],   result: 144, ko: '프리져' },
-      { ingredients: [64, 67],  result: 150, ko: '뮤츠' },
-      { ingredients: [148, 64], result: 151, ko: '뮤' },
+      // 1세대 전설 (속성 개연성 기준으로 재설계)
+      { ingredients: [5, 17],   result: 146, ko: '파이어' },    // 리자드+피죤 (불+비행)
+      { ingredients: [26, 17],  result: 145, ko: '썬더' },      // 라이츄+피죤 (전기+비행)
+      { ingredients: [124, 17], result: 144, ko: '프리져' },    // 루주라+피죤 (얼음/에스퍼+비행)
+      { ingredients: [64, 67],  result: 150, ko: '뮤츠' },      // 윤겔라+근육몬 (에스퍼+격투)
+      { ingredients: [148, 64], result: 151, ko: '뮤' },        // 신뇽+윤겔라 (드래곤+에스퍼)
       // 화석/고대 단독
       { ingredients: [75, 8],   result: 138, ko: '암나이트' },
       { ingredients: [61, 75],  result: 140, ko: '투구' },
@@ -48,27 +48,25 @@ export const RECIPE_PAGES: IRecipePage[] = [
       { ingredients: [14, 17],  result: 123, ko: '스라크' },
       { ingredients: [64, 8],   result: 124, ko: '루주라' },
       { ingredients: [64, 53],  result: 137, ko: '폴리곤' },
-      // 2세대 전설 트리오 (단독 합성 result 페어로 chain 깊이 추가)
-      { ingredients: [127, 123], result: 243, ko: '라이코' },   // 쁘사이저 + 스라크
-      { ingredients: [126, 125], result: 244, ko: '엔테이' },   // 마그마 + 에레브
-      { ingredients: [143, 131], result: 245, ko: '스이쿤' },   // 잠만보 + 라프라스
+      // 2세대 전설 트리오 (속성 페어로 재설계)
+      { ingredients: [125, 26],  result: 243, ko: '라이코' },   // 에레브 + 라이츄 (전기+전기)
+      { ingredients: [126, 58],  result: 244, ko: '엔테이' },   // 마그마 + 가디 (불+불)
+      { ingredients: [131, 61],  result: 245, ko: '스이쿤' },   // 라프라스 + 슈륙챙이 (물+물)
     ],
   },
   {
-    title: '메가 / 신화 전설',
-    subtitle: '최종 진화체 또는 전설끼리 합성',
+    title: '신화 (★5)',
+    subtitle: '최종 진화체 / 전설 / 드래곤 페어 → 신화 포켓몬',
     recipes: [
-      { ingredients: [6, 18],    result: 250, ko: '호오' },
-      { ingredients: [65, 18],   result: 249, ko: '루기아' },
-      { ingredients: [65, 3],    result: 251, ko: '셀레비' },
-      { ingredients: [149, 18],  result: 384, ko: '레쿠쟈' },
-      { ingredients: [144, 145], result: 483, ko: '디아루가' },
-      { ingredients: [250, 249], result: 484, ko: '펄기아' },
-      { ingredients: [150, 151], result: 493, ko: '아르세우스' },
-      // 단독 합성 result 페어로 신화 만들기
-      { ingredients: [122, 124], result: 151, ko: '뮤' },        // 마임맨 + 루주라 (에스퍼끼리)
-      { ingredients: [128, 115], result: 384, ko: '레쿠쟈' },    // 켄타로스 + 캥카 (강한 단독 페어)
-      { ingredients: [113, 108], result: 251, ko: '셀레비' },    // 럭키 + 내루미 (귀여운 노말 페어)
+      { ingredients: [6, 18],    result: 250, ko: '호오' },       // 리자몽+피죤투 (불/비행+노말/비행)
+      { ingredients: [65, 18],   result: 249, ko: '루기아' },     // 후딘+피죤투 (에스퍼+비행)
+      { ingredients: [65, 3],    result: 251, ko: '셀레비' },     // 후딘+이상해꽃 (에스퍼+풀)
+      { ingredients: [149, 18],  result: 384, ko: '레쿠쟈' },     // 망나뇽+피죤투 (드래곤/비행)
+      { ingredients: [147, 148], result: 483, ko: '디아루가' },   // 미뇽+신뇽 (드래곤+드래곤)
+      { ingredients: [149, 130], result: 484, ko: '펄기아' },     // 망나뇽+갸라도스 (드래곤/물)
+      { ingredients: [150, 151], result: 493, ko: '아르세우스' }, // 뮤츠+뮤 (에스퍼 신화)
+      // 단독 합성 result 페어로 신화
+      { ingredients: [122, 124], result: 151, ko: '뮤' },        // 마임맨+루주라 (에스퍼끼리)
     ],
   },
   {

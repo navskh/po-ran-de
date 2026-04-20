@@ -252,12 +252,21 @@ const NEXT_EVOLUTION: Record<number, number | null> = {};
 const STAGE: Record<number, number> = {};
 const BASE_OF: Record<number, number> = {};
 
+// 신화 그레이드 (stage 5): 전설 위의 최상위 티어
+const MYTHIC_STAGE_OVERRIDE: Record<number, number> = {
+  249: 5, 250: 5, 251: 5, 384: 5,  // 2세대 전설 신화 격상
+  483: 5, 484: 5, 493: 5,          // 3세대 신화
+};
+
 for (const chain of EVOLUTION_CHAINS) {
   for (let i = 0; i < chain.length; i++) {
     NEXT_EVOLUTION[chain[i]] = chain[i + 1] ?? null;
     STAGE[chain[i]] = i + 1;
     BASE_OF[chain[i]] = chain[0];
   }
+}
+for (const [id, s] of Object.entries(MYTHIC_STAGE_OVERRIDE)) {
+  STAGE[Number(id)] = s;
 }
 
 export interface IPokemon {
@@ -280,7 +289,13 @@ export function getPokemon(id: number): IPokemon {
   const rarity = BASE_RARITY[baseId];
   const stage = STAGE[id];
   const stats = RARITY_BASE_STATS[rarity];
-  const stageMult = stage === 1 ? 1 : stage === 2 ? 2.2 : stage === 3 ? 4.5 : 8.0;
+  const stageMult =
+    stage === 1 ? 1 :
+    stage === 2 ? 2.2 :
+    stage === 3 ? 4.5 :
+    stage === 4 ? 8.0 :
+    stage === 5 ? 1.5 :  // 신화: rarity 5/6 위에 1.5배 가중
+    1;
   return {
     id,
     ko: info.ko,
@@ -336,11 +351,22 @@ export const ADVANCED_LEGENDARY_POOL: number[] = [144, 145, 146, 150, 151, 243, 
 
 export function rollAdvancedRandomPokemonId(): number {
   const r = Math.random();
-  if (r < 0.05) {
+  if (r < 0.08) {
     return ADVANCED_LEGENDARY_POOL[Math.floor(Math.random() * ADVANCED_LEGENDARY_POOL.length)];
   }
-  if (r < 0.35) {
+  if (r < 0.40) {
     return ADVANCED_RECIPE_POOL[Math.floor(Math.random() * ADVANCED_RECIPE_POOL.length)];
   }
-  return rollRandomPokemonId();
+  // 2성 이상 가중 뽑기 (1성 뿔충이/캐터피 등 제외)
+  const rr = Math.random();
+  let rarity: 2 | 3 | 4;
+  if (rr < 0.60) rarity = 2;
+  else if (rr < 0.90) rarity = 3;
+  else rarity = 4;
+  const candidates = BASE_POKEMON_IDS.filter((id) => BASE_RARITY[id] === rarity);
+  if (candidates.length === 0) {
+    const fallback = BASE_POKEMON_IDS.filter((id) => BASE_RARITY[id] >= 2);
+    return fallback[Math.floor(Math.random() * fallback.length)];
+  }
+  return candidates[Math.floor(Math.random() * candidates.length)];
 }
