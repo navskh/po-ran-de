@@ -51,6 +51,10 @@ export class MergeSystem {
     }
 
     if (dragged.pokemon.id === EEVEE_ID && target.pokemon.id !== EEVEE_ID) {
+      // 중간 진화체는 자연 진화시키도록 차단 (이상해풀 같은 stage 2+ 진화 잔여)
+      if (target.pokemon.stage > 1 && target.pokemon.evolvesTo !== null) {
+        return { type: 'none' };
+      }
       const evo = getEeveeEvolutionFor(target.pokemon.types[0]);
       if (evo) return { type: 'eeveeMerge', eeveeId: evo.id, eeveeKo: evo.ko };
       return { type: 'none' };

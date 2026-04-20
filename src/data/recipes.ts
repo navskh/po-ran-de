@@ -39,11 +39,11 @@ export const RECIPE_PAGES: IRecipePage[] = [
       { ingredients: [124, 18], result: 144, ko: '프리져' },    // 루주라+피죤투 (얼음/에스퍼+비행)
       { ingredients: [65, 68],  result: 150, ko: '뮤츠' },      // 후딘+괴력몬 (에스퍼+격투)
       { ingredients: [149, 65], result: 151, ko: '뮤' },        // 망나뇽+후딘 (드래곤+에스퍼)
-      // 화석/고대 단독
-      { ingredients: [17, 5],   result: 142, ko: '프테라' },
-      { ingredients: [14, 17],  result: 123, ko: '스라크' },
-      { ingredients: [64, 8],   result: 124, ko: '루주라' },
-      { ingredients: [64, 53],  result: 137, ko: '폴리곤' },
+      // 화석/고대 단독 (완전체 페어 기준)
+      { ingredients: [76, 18],  result: 142, ko: '프테라' },   // 딱구리+피죤투 (바위+비행)
+      { ingredients: [12, 18],  result: 123, ko: '스라크' },   // 버터플+피죤투 (벌레+비행)
+      { ingredients: [131, 65], result: 124, ko: '루주라' },   // 라프라스+후딘 (얼음+에스퍼)
+      { ingredients: [53, 18],  result: 137, ko: '폴리곤' },   // 페르시온+피죤투 (노말+노말/비행)
       // 2세대 전설 트리오 (완전체 속성 페어)
       { ingredients: [125, 26],  result: 243, ko: '라이코' },   // 에레브(단독 완전체) + 라이츄 (전기+전기)
       { ingredients: [126, 59],  result: 244, ko: '엔테이' },   // 마그마(단독 완전체) + 윈디 (불+불)
