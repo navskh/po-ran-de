@@ -310,6 +310,27 @@ export interface IPokemon {
   attackSpeed: number;
 }
 
+// 타입별 range 배수 (포켓몬 컨셉 반영)
+const RANGE_MULT_BY_TYPE: Partial<Record<string, number>> = {
+  fighting: 0.70,  // 근접 펀치/킥
+  normal:   0.85,
+  rock:     0.80,
+  ground:   0.80,
+  bug:      0.85,
+  grass:    0.95,
+  poison:   0.95,
+  steel:    0.90,
+  ghost:    1.00,
+  ice:      1.00,
+  fire:     1.00,
+  water:    1.05,
+  dark:     1.05,
+  electric: 1.15,  // 전격 장거리
+  flying:   1.15,
+  psychic:  1.20,  // 사이킥 최장거리
+  dragon:   1.20,  // 드래곤 브레스
+};
+
 export function getPokemon(id: number): IPokemon {
   const info = POKEMON_INFO[id];
   if (!info) throw new Error(`Unknown pokemon id: ${id}`);
@@ -322,8 +343,11 @@ export function getPokemon(id: number): IPokemon {
     stage === 2 ? 2.2 :
     stage === 3 ? 4.5 :
     stage === 4 ? 8.0 :
-    stage === 5 ? 1.5 :  // 신화: rarity 5/6 위에 1.5배 가중
+    stage === 5 ? 1.5 :  // 신화
     1;
+  const baseRange = stats.range + (stage - 1) * 20;
+  const typeMult = RANGE_MULT_BY_TYPE[info.types[0]] ?? 1;
+  const range = Math.floor(baseRange * typeMult);
   return {
     id,
     ko: info.ko,
@@ -333,7 +357,7 @@ export function getPokemon(id: number): IPokemon {
     rarity,
     hp: Math.floor(stats.hp * stageMult),
     attack: Math.floor(stats.attack * stageMult),
-    range: stats.range + (stage - 1) * 20,
+    range,
     attackSpeed: stats.attackSpeed + (stage - 1) * 0.15,
   };
 }
