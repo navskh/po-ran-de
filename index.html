@@ -294,10 +294,82 @@
       }
       footer a:hover { color: var(--text); }
 
+      /* Pokemon showcase cards */
+      .pokemon-showcase {
+        padding: 20px 0 60px;
+      }
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 16px;
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      .poke-card {
+        background: linear-gradient(145deg, var(--bg-soft), rgba(20, 22, 50, 0.9));
+        border-radius: 14px;
+        padding: 16px 12px;
+        text-align: center;
+        border: 2px solid;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        animation: float 3.5s ease-in-out infinite;
+        position: relative;
+        overflow: hidden;
+      }
+      .poke-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at top, rgba(255, 255, 255, 0.06), transparent 70%);
+        pointer-events: none;
+      }
+      .poke-card:hover {
+        transform: translateY(-10px) scale(1.05) rotate(-2deg);
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+      }
+      .poke-card:nth-child(odd)  { animation-delay: 0s; }
+      .poke-card:nth-child(even) { animation-delay: 0.7s; }
+      .poke-card:nth-child(3n)   { animation-delay: 1.4s; }
+      .poke-card.r1 { border-color: #9aa0c5; box-shadow: 0 0 20px rgba(154, 160, 197, 0.15); }
+      .poke-card.r2 { border-color: #66cc66; box-shadow: 0 0 20px rgba(102, 204, 102, 0.2); }
+      .poke-card.r3 { border-color: #4488ff; box-shadow: 0 0 20px rgba(68, 136, 255, 0.25); }
+      .poke-card.r4 { border-color: #aa55ee; box-shadow: 0 0 25px rgba(170, 85, 238, 0.3); }
+      .poke-card.r5 { border-color: #ff9933; box-shadow: 0 0 30px rgba(255, 153, 51, 0.35); }
+      .poke-card.r6 { border-color: #ff33dd; box-shadow: 0 0 35px rgba(255, 51, 221, 0.4); }
+      .poke-card img {
+        width: 96px; height: 96px;
+        image-rendering: pixelated;
+        image-rendering: -moz-crisp-edges;
+        filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+      }
+      .poke-card .name {
+        font-weight: 700;
+        font-size: 15px;
+        margin-top: 6px;
+      }
+      .poke-card .tier {
+        font-size: 10px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-top: 2px;
+      }
+      .poke-card.r5 .tier, .poke-card.r6 .tier {
+        color: var(--accent);
+      }
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50%      { transform: translateY(-8px); }
+      }
+
       @media (max-width: 640px) {
         .hero { padding: 40px 0 60px; }
         .section { padding: 40px 0; }
         nav a:first-child { display: none; }
+        .card-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .poke-card { padding: 10px 6px; }
+        .poke-card img { width: 72px; height: 72px; }
+        .poke-card .name { font-size: 13px; }
       }
     </style>
   </head>
@@ -329,6 +401,51 @@
           <a href="#features" class="btn btn-ghost">
             더 알아보기
           </a>
+        </div>
+      </section>
+
+      <section class="pokemon-showcase" aria-label="포켓몬 미리보기">
+        <div class="card-grid">
+          <div class="poke-card r2">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" alt="피카츄" loading="lazy" />
+            <div class="name">피카츄</div>
+            <div class="tier">Uncommon</div>
+          </div>
+          <div class="poke-card r3">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png" alt="리자몽" loading="lazy" />
+            <div class="name">리자몽</div>
+            <div class="tier">Rare</div>
+          </div>
+          <div class="poke-card r4">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png" alt="이브이" loading="lazy" />
+            <div class="name">이브이</div>
+            <div class="tier">Epic</div>
+          </div>
+          <div class="poke-card r4">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/143.png" alt="잠만보" loading="lazy" />
+            <div class="name">잠만보</div>
+            <div class="tier">Epic</div>
+          </div>
+          <div class="poke-card r5">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png" alt="뮤츠" loading="lazy" />
+            <div class="name">뮤츠</div>
+            <div class="tier">Legendary</div>
+          </div>
+          <div class="poke-card r5">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/146.png" alt="파이어" loading="lazy" />
+            <div class="name">파이어</div>
+            <div class="tier">Legendary</div>
+          </div>
+          <div class="poke-card r5">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/249.png" alt="루기아" loading="lazy" />
+            <div class="name">루기아</div>
+            <div class="tier">Mythic</div>
+          </div>
+          <div class="poke-card r6">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/493.png" alt="아르세우스" loading="lazy" />
+            <div class="name">아르세우스</div>
+            <div class="tier">Mythic</div>
+          </div>
         </div>
       </section>
 
