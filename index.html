@@ -298,6 +298,13 @@
       .pokemon-showcase {
         padding: 20px 0 60px;
       }
+      .showcase-caption {
+        text-align: center;
+        color: var(--muted);
+        font-size: 14px;
+        margin-bottom: 28px;
+        letter-spacing: 0.02em;
+      }
       .card-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -341,6 +348,23 @@
         image-rendering: pixelated;
         image-rendering: -moz-crisp-edges;
         filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+        transition: opacity 0.4s ease, transform 0.4s ease, filter 0.4s ease;
+      }
+      .poke-card.evolving img {
+        opacity: 0;
+        transform: scale(0.6) rotate(10deg);
+        filter: drop-shadow(0 4px 20px rgba(255, 211, 77, 0.9)) brightness(1.8);
+      }
+      .poke-card .name,
+      .poke-card .tier {
+        transition: opacity 0.3s ease;
+      }
+      .poke-card.evolving .name,
+      .poke-card.evolving .tier {
+        opacity: 0;
+      }
+      .poke-card {
+        transition: border-color 0.5s ease, box-shadow 0.5s ease;
       }
       .poke-card .name {
         font-weight: 700;
@@ -404,47 +428,48 @@
         </div>
       </section>
 
-      <section class="pokemon-showcase" aria-label="포켓몬 미리보기">
+      <section class="pokemon-showcase" aria-label="포켓몬 진화 미리보기">
+        <div class="showcase-caption">작은 포켓몬을 모아 진화시키고, 전설과 신화로 강한 적들을 막아내세요</div>
         <div class="card-grid">
-          <div class="poke-card r2">
+          <div class="poke-card r2" data-chain="1,2,3" data-names="이상해씨,이상해풀,이상해꽃" data-rarities="2,2,3">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" alt="이상해씨" loading="lazy" />
+            <div class="name">이상해씨</div>
+            <div class="tier">진화 가능</div>
+          </div>
+          <div class="poke-card r2" data-chain="4,5,6" data-names="파이리,리자드,리자몽" data-rarities="2,2,3">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png" alt="파이리" loading="lazy" />
+            <div class="name">파이리</div>
+            <div class="tier">진화 가능</div>
+          </div>
+          <div class="poke-card r2" data-chain="7,8,9" data-names="꼬부기,어니부기,거북왕" data-rarities="2,2,3">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png" alt="꼬부기" loading="lazy" />
+            <div class="name">꼬부기</div>
+            <div class="tier">진화 가능</div>
+          </div>
+          <div class="poke-card r2" data-chain="25,26" data-names="피카츄,라이츄" data-rarities="2,3">
             <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" alt="피카츄" loading="lazy" />
             <div class="name">피카츄</div>
-            <div class="tier">Uncommon</div>
+            <div class="tier">진화 가능</div>
           </div>
-          <div class="poke-card r3">
-            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png" alt="리자몽" loading="lazy" />
-            <div class="name">리자몽</div>
-            <div class="tier">Rare</div>
+          <div class="poke-card r1" data-chain="10,11,12" data-names="캐터피,단데기,버터플" data-rarities="1,1,2">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10.png" alt="캐터피" loading="lazy" />
+            <div class="name">캐터피</div>
+            <div class="tier">진화 가능</div>
           </div>
-          <div class="poke-card r4">
+          <div class="poke-card r4" data-chain="133,134,135,136,197,470,471" data-names="이브이,샤미드,쥬피썬더,부스터,블래키,리피아,글레이시아" data-rarities="4,4,4,4,4,4,4">
             <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png" alt="이브이" loading="lazy" />
             <div class="name">이브이</div>
-            <div class="tier">Epic</div>
+            <div class="tier">분기 진화</div>
           </div>
-          <div class="poke-card r4">
-            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/143.png" alt="잠만보" loading="lazy" />
-            <div class="name">잠만보</div>
-            <div class="tier">Epic</div>
+          <div class="poke-card r3" data-chain="147,148,149" data-names="미뇽,신뇽,망나뇽" data-rarities="3,3,4">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/147.png" alt="미뇽" loading="lazy" />
+            <div class="name">미뇽</div>
+            <div class="tier">진화 가능</div>
           </div>
-          <div class="poke-card r5">
-            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png" alt="뮤츠" loading="lazy" />
-            <div class="name">뮤츠</div>
-            <div class="tier">Legendary</div>
-          </div>
-          <div class="poke-card r5">
-            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/146.png" alt="파이어" loading="lazy" />
-            <div class="name">파이어</div>
-            <div class="tier">Legendary</div>
-          </div>
-          <div class="poke-card r5">
-            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/249.png" alt="루기아" loading="lazy" />
-            <div class="name">루기아</div>
-            <div class="tier">Mythic</div>
-          </div>
-          <div class="poke-card r6">
-            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/493.png" alt="아르세우스" loading="lazy" />
-            <div class="name">아르세우스</div>
-            <div class="tier">Mythic</div>
+          <div class="poke-card r2" data-chain="129,130" data-names="잉어킹,갸라도스" data-rarities="2,4">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/129.png" alt="잉어킹" loading="lazy" />
+            <div class="name">잉어킹</div>
+            <div class="tier">진화 가능</div>
           </div>
         </div>
       </section>
@@ -529,5 +554,38 @@
         </div>
       </footer>
     </div>
+
+    <script>
+      (function () {
+        const SPRITE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
+        const cards = document.querySelectorAll('.poke-card[data-chain]');
+        cards.forEach((card, cardIdx) => {
+          const chain = card.dataset.chain.split(',').map(Number);
+          const names = card.dataset.names.split(',');
+          const rarities = card.dataset.rarities.split(',');
+          const img = card.querySelector('img');
+          const nameEl = card.querySelector('.name');
+          let i = 0;
+
+          const advance = () => {
+            i = (i + 1) % chain.length;
+            card.classList.add('evolving');
+            setTimeout(() => {
+              img.src = SPRITE + chain[i] + '.png';
+              img.alt = names[i];
+              nameEl.textContent = names[i];
+              card.className = card.className.replace(/\br\d\b/g, '').trim() + ' r' + rarities[i];
+              card.classList.remove('evolving');
+            }, 380);
+          };
+
+          // 카드마다 시작 시점 다르게 (파도 효과)
+          setTimeout(() => {
+            advance();
+            setInterval(advance, 3000);
+          }, cardIdx * 450);
+        });
+      })();
+    </script>
   </body>
 </html>
