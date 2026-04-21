@@ -712,9 +712,9 @@ export class GameScene extends Phaser.Scene {
     });
     void speedLabel;
 
-    // 키 힌트 (최적 추가로 공간 빡빡 → 간결하게)
+    // 키 힌트 (간결)
     const hintY = speedY + 32;
-    this.add.text(TRASH_X, hintY, 'D/F:뽑기\nW:웨이브\n1/2/3:속도\nG:전체', {
+    this.add.text(TRASH_X, hintY, 'D/F:뽑기\nW:웨이브\n1/2/3:속도', {
       fontFamily: 'monospace', fontSize: '8px', color: '#66688a', align: 'center',
       lineSpacing: 1,
     }).setOrigin(0.5, 0);
