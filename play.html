@@ -54,6 +54,34 @@
         }
       }
 
+      /* 전체화면 토글 버튼 */
+      #fullscreen-btn {
+        position: fixed;
+        top: 12px;
+        right: 12px;
+        z-index: 100;
+        background: rgba(10, 26, 56, 0.75);
+        border: 1px solid rgba(255, 203, 5, 0.4);
+        border-radius: 10px;
+        color: #FFCB05;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        transition: background 0.15s, transform 0.15s;
+      }
+      #fullscreen-btn:hover { background: rgba(42, 117, 187, 0.7); transform: scale(1.08); }
+      #fullscreen-btn:active { transform: scale(0.95); }
+      #fullscreen-btn svg { width: 20px; height: 20px; display: block; }
+      #fullscreen-btn .icon-exit { display: none; }
+      :fullscreen #fullscreen-btn .icon-enter { display: none; }
+      :fullscreen #fullscreen-btn .icon-exit { display: block; }
+
       /* 세로 모드: 가로 회전 안내 */
       #rotate-hint {
         display: none;
@@ -94,11 +122,44 @@
   </head>
   <body>
     <div id="game-container"></div>
+    <button id="fullscreen-btn" type="button" aria-label="전체화면 토글" title="전체화면 (F11)">
+      <svg class="icon-enter" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M4 4h6v2H6v4H4V4zm10 0h6v6h-2V6h-4V4zM4 14h2v4h4v2H4v-6zm14 0h2v6h-6v-2h4v-4z"/>
+      </svg>
+      <svg class="icon-exit" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M10 4v6H4V8h4V4h2zm10 4v2h-6V4h2v4h4zM4 14h6v6H8v-4H4v-2zm12 0h4v2h-4v4h-2v-6h2z"/>
+      </svg>
+    </button>
     <div id="rotate-hint" role="alert">
       <div class="icon">📱</div>
       <h2>가로 모드로 플레이해주세요</h2>
       <p>기기를 옆으로 돌리면<br />게임이 화면에 꽉 채워집니다</p>
     </div>
+    <script>
+      (function () {
+        const btn = document.getElementById('fullscreen-btn');
+        if (!btn) return;
+        const rootEl = document.documentElement;
+        const isFs = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+        const enter = () => {
+          const el = rootEl;
+          if (el.requestFullscreen) el.requestFullscreen();
+          else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        };
+        const exit = () => {
+          if (document.exitFullscreen) document.exitFullscreen();
+          else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        };
+        btn.addEventListener('click', () => { if (isFs()) exit(); else enter(); });
+        // F 키는 이미 고급뽑기에 쓰여서 'G' 키로 전체화면 토글
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'g' || e.key === 'G') {
+            if (!e.target || (e.target instanceof HTMLInputElement)) return;
+            if (isFs()) exit(); else enter();
+          }
+        });
+      })();
+    </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

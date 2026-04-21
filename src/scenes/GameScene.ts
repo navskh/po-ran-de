@@ -670,7 +670,7 @@ export class GameScene extends Phaser.Scene {
 
     // 키 힌트
     const hintY = speedY + 40;
-    this.add.text(TRASH_X, hintY, 'D:뽑기 W:웨이브\nS:정렬 Space:정지\n1/2/3:속도', {
+    this.add.text(TRASH_X, hintY, 'D:뽑기 W:웨이브\nS:정렬 Space:정지\n1/2/3:속도 G:전체', {
       fontFamily: 'monospace', fontSize: '9px', color: '#66688a', align: 'center',
     }).setOrigin(0.5, 0);
   }
