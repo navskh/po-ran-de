@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-    <title>포랜디 (Po-Ran-De) — 포켓몬 랜덤 디펜스</title>
-    <meta name="description" content="포켓몬 IP로 만든 랜덤 디펜스 게임. 뽑고, 합치고, 진화시켜 웨이브를 막아내세요. 1~2세대 포켓몬 + 메가 진화 + 전설 합성." />
-    <meta name="keywords" content="포켓몬, 포랜디, 랜덤디펜스, 합성, 진화, 메가진화, 전설, 웹게임, 포켓몬 게임, pokemon, random defense, tower defense" />
+    <title>포랜디 (Po-Ran-De) — 포켓몬 랜덤 디펜스 웹게임</title>
+    <meta name="description" content="브라우저에서 바로 즐기는 포켓몬 랜덤 디펜스. 뽑고 합치고 진화시켜 80+ 포켓몬과 50 웨이브를 공략하세요. 메가진화, 전설 합성, 이브이 분기, 시너지 시스템." />
+    <meta name="keywords" content="포켓몬, 포랜디, 랜덤디펜스, 랜덤 디펜스, 포켓몬 게임, 웹게임, 타워디펜스, 포켓몬 타워디펜스, 합성, 진화, 메가진화, 전설, 이브이, pokemon, pokemon random defense, tower defense, 무료 웹게임" />
     <meta name="author" content="navskh" />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://porande.vercel.app/" />
@@ -15,82 +15,402 @@
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="포랜디" />
-    <meta property="og:title" content="포랜디 (Po-Ran-De) — 포켓몬 랜덤 디펜스" />
-    <meta property="og:description" content="뽑고, 합치고, 진화시켜 웨이브를 막아내는 포켓몬 랜덤 디펜스 게임." />
+    <meta property="og:title" content="포랜디 — 포켓몬 랜덤 디펜스" />
+    <meta property="og:description" content="브라우저에서 바로 즐기는 포켓몬 랜덤 디펜스 웹게임" />
     <meta property="og:url" content="https://porande.vercel.app/" />
     <meta property="og:image" content="https://porande.vercel.app/favicon.svg" />
     <meta property="og:locale" content="ko_KR" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="포랜디 (Po-Ran-De) — 포켓몬 랜덤 디펜스" />
-    <meta name="twitter:description" content="뽑고, 합치고, 진화시켜 웨이브를 막아내는 포켓몬 랜덤 디펜스 게임." />
+    <meta name="twitter:title" content="포랜디 — 포켓몬 랜덤 디펜스" />
+    <meta name="twitter:description" content="브라우저에서 바로 즐기는 포켓몬 랜덤 디펜스 웹게임" />
     <meta name="twitter:image" content="https://porande.vercel.app/favicon.svg" />
 
-    <!-- 네이버 사이트 인증 placeholder (필요시 채우기) -->
-    <!-- <meta name="naver-site-verification" content="..." /> -->
-    <!-- 구글 사이트 인증 placeholder (필요시 채우기) -->
-    <!-- <meta name="google-site-verification" content="..." /> -->
-
-    <!-- JSON-LD 구조화 데이터 -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "VideoGame",
       "name": "포랜디 (Po-Ran-De)",
-      "description": "포켓몬 IP로 만든 랜덤 디펜스 웹게임",
+      "description": "포켓몬 IP로 만든 브라우저 기반 랜덤 디펜스 웹게임",
       "url": "https://porande.vercel.app/",
       "applicationCategory": "Game",
+      "genre": ["Tower Defense", "Strategy"],
       "operatingSystem": "Web Browser",
       "inLanguage": "ko-KR",
-      "author": { "@type": "Person", "name": "navskh" }
+      "author": { "@type": "Person", "name": "navskh" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KRW" }
     }
     </script>
 
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      :root {
+        --bg: #07080f;
+        --bg-soft: #11132a;
+        --accent: #ffd34d;
+        --accent-2: #6680ff;
+        --accent-3: #ff6699;
+        --text: #e6e6f0;
+        --muted: #9aa0c5;
       }
       html, body {
-        width: 100%;
-        height: 100%;
-        background: #07080f;
-        color: #e6e6f0;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        overflow: hidden;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
+        line-height: 1.6;
       }
       body {
+        background:
+          radial-gradient(ellipse at top, rgba(102, 128, 255, 0.15), transparent 60%),
+          radial-gradient(ellipse at bottom, rgba(255, 102, 153, 0.08), transparent 60%),
+          var(--bg);
+        min-height: 100vh;
+      }
+      .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+      /* Hero */
+      header {
+        padding: 24px 0;
         display: flex;
         align-items: center;
+        justify-content: space-between;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 20px;
+        font-weight: 700;
+      }
+      .brand img { width: 28px; height: 28px; }
+      nav a {
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 14px;
+        margin-left: 20px;
+        transition: color 0.2s;
+      }
+      nav a:hover { color: var(--text); }
+
+      .hero {
+        text-align: center;
+        padding: 80px 0 100px;
+      }
+      .hero-badge {
+        display: inline-block;
+        background: rgba(102, 128, 255, 0.12);
+        border: 1px solid rgba(102, 128, 255, 0.35);
+        color: var(--accent-2);
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 24px;
+      }
+      .hero h1 {
+        font-size: clamp(36px, 6vw, 64px);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+        margin-bottom: 20px;
+      }
+      .hero h1 .highlight {
+        background: linear-gradient(120deg, var(--accent), var(--accent-3));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .hero p.lead {
+        font-size: clamp(15px, 1.6vw, 18px);
+        color: var(--muted);
+        max-width: 640px;
+        margin: 0 auto 36px;
+      }
+      .cta-group {
+        display: flex;
+        gap: 12px;
         justify-content: center;
+        flex-wrap: wrap;
       }
-      #game-container {
-        box-shadow: 0 12px 60px rgba(0, 0, 0, 0.7);
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 14px 28px;
         border-radius: 12px;
-        overflow: hidden;
+        font-size: 16px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: transform 0.15s, box-shadow 0.15s;
+        cursor: pointer;
+        border: none;
       }
-      #game-container canvas {
-        display: block;
+      .btn-primary {
+        background: linear-gradient(135deg, var(--accent-2), var(--accent-3));
+        color: #fff;
+        box-shadow: 0 10px 30px rgba(102, 128, 255, 0.35);
       }
-      /* 검색엔진 크롤러용 숨김 콘텐츠 */
-      .seo-content {
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 40px rgba(102, 128, 255, 0.5);
+      }
+      .btn-ghost {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .btn-ghost:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      /* Features */
+      .section {
+        padding: 60px 0;
+      }
+      .section-title {
+        text-align: center;
+        font-size: clamp(26px, 3.5vw, 36px);
+        font-weight: 800;
+        margin-bottom: 12px;
+      }
+      .section-sub {
+        text-align: center;
+        color: var(--muted);
+        font-size: 15px;
+        margin-bottom: 48px;
+      }
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+      }
+      .feature {
+        background: var(--bg-soft);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 28px;
+        border-radius: 16px;
+        transition: transform 0.2s, border-color 0.2s;
+      }
+      .feature:hover {
+        transform: translateY(-4px);
+        border-color: rgba(102, 128, 255, 0.4);
+      }
+      .feature .icon {
+        font-size: 28px;
+        margin-bottom: 14px;
+      }
+      .feature h3 {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      .feature p {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      /* How to play */
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 20px;
+      }
+      .step {
+        background: var(--bg-soft);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 28px;
+        border-radius: 16px;
+        position: relative;
+      }
+      .step-num {
         position: absolute;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        clip: rect(0 0 0 0);
+        top: -14px; left: 20px;
+        width: 36px; height: 36px;
+        display: flex; align-items: center; justify-content: center;
+        background: linear-gradient(135deg, var(--accent-2), var(--accent-3));
+        border-radius: 50%;
+        font-weight: 800;
+        font-size: 16px;
+        color: #fff;
+      }
+      .step h3 { font-size: 18px; font-weight: 700; margin: 10px 0 8px; }
+      .step p { color: var(--muted); font-size: 14px; }
+
+      /* Stats */
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px;
+        padding: 40px 0;
+      }
+      .stat {
+        text-align: center;
+        background: var(--bg-soft);
+        padding: 28px 16px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .stat .num {
+        font-size: clamp(28px, 4vw, 40px);
+        font-weight: 900;
+        color: var(--accent);
+      }
+      .stat .label {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      /* CTA bottom */
+      .cta-bottom {
+        text-align: center;
+        padding: 80px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .cta-bottom h2 {
+        font-size: clamp(26px, 4vw, 40px);
+        font-weight: 800;
+        margin-bottom: 16px;
+      }
+      .cta-bottom p {
+        color: var(--muted);
+        margin-bottom: 28px;
+      }
+
+      /* Footer */
+      footer {
+        padding: 40px 0 60px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      footer a {
+        color: var(--muted);
+        margin: 0 10px;
+        text-decoration: none;
+      }
+      footer a:hover { color: var(--text); }
+
+      @media (max-width: 640px) {
+        .hero { padding: 40px 0 60px; }
+        .section { padding: 40px 0; }
+        nav a:first-child { display: none; }
       }
     </style>
   </head>
   <body>
-    <h1 class="seo-content">포랜디 (Po-Ran-De) — 포켓몬 랜덤 디펜스</h1>
-    <p class="seo-content">
-      포켓몬을 뽑고 합성하며 진화시켜 웨이브를 막아내는 웹 기반 랜덤 디펜스 게임입니다.
-      1~2세대 포켓몬, 메가 진화, 전설 합성, 이브이 진화, 타입 상성 시스템을 지원합니다.
-    </p>
-    <div id="game-container"></div>
-    <script type="module" src="/src/main.ts"></script>
+    <div class="container">
+      <header>
+        <div class="brand">
+          <img src="/favicon.svg" alt="포랜디" />
+          <span>포랜디</span>
+        </div>
+        <nav>
+          <a href="#features">특징</a>
+          <a href="#how">플레이 방법</a>
+          <a href="https://github.com/navskh/po-ran-de" target="_blank" rel="noopener">GitHub</a>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <span class="hero-badge">무료 · 브라우저에서 바로 플레이</span>
+        <h1>포켓몬 <span class="highlight">랜덤 디펜스</span><br />포랜디</h1>
+        <p class="lead">
+          뽑고, 합치고, 진화시켜 50 웨이브를 막아내세요.<br />
+          80종이 넘는 포켓몬, 메가진화, 전설 합성, 이브이 분기, 시너지 시스템.
+        </p>
+        <div class="cta-group">
+          <a href="/play" class="btn btn-primary">
+            🎮 Get Started
+          </a>
+          <a href="#features" class="btn btn-ghost">
+            더 알아보기
+          </a>
+        </div>
+      </section>
+
+      <section class="stats">
+        <div class="stat"><div class="num">80+</div><div class="label">포켓몬</div></div>
+        <div class="stat"><div class="num">50</div><div class="label">웨이브</div></div>
+        <div class="stat"><div class="num">40+</div><div class="label">합성 레시피</div></div>
+        <div class="stat"><div class="num">7</div><div class="label">시너지</div></div>
+      </section>
+
+      <section class="section" id="features">
+        <h2 class="section-title">게임 특징</h2>
+        <p class="section-sub">단순한 뽑기 이상, 깊이 있는 합성·진화·시너지 전략</p>
+        <div class="features-grid">
+          <div class="feature">
+            <div class="icon">🎲</div>
+            <h3>포켓몬 합성</h3>
+            <p>40가지 이상의 레시피. 베이스 페어로 잠만보, 라프라스 같은 강력한 단독 포켓몬을 만드세요.</p>
+          </div>
+          <div class="feature">
+            <div class="icon">🌟</div>
+            <h3>진화 & 메가</h3>
+            <p>같은 종을 모아 자연 진화, 완전체 페어로 메가 진화까지. 단계가 깊어질수록 강해집니다.</p>
+          </div>
+          <div class="feature">
+            <div class="icon">👑</div>
+            <h3>전설 & 신화</h3>
+            <p>1~2세대 전설, 5세대 격투/벌레 전설, 신화 트리오. 완전체+완전체로만 만들 수 있습니다.</p>
+          </div>
+          <div class="feature">
+            <div class="icon">💫</div>
+            <h3>이브이 진화 8갈래</h3>
+            <p>이브이와 같은 타입 포켓몬을 합쳐 샤미드/쥬피썬더/부스터/에브이/블래키/리피아/글레이시아로.</p>
+          </div>
+          <div class="feature">
+            <div class="icon">⚡</div>
+            <h3>상태이상 전투</h3>
+            <p>얼음/물은 감속, 전기는 기절, 독/불은 DoT. 공격 타입에 따라 적에게 지속 효과를 부여합니다.</p>
+          </div>
+          <div class="feature">
+            <div class="icon">🤝</div>
+            <h3>시너지 시스템</h3>
+            <p>전설의 개 트리오, 이브이 가족, 1세대 스타터 등 특정 조합이 모이면 자동 버프.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="how">
+        <h2 class="section-title">3단계로 시작하기</h2>
+        <p class="section-sub">금방 익숙해질 수 있는 직관적인 조작</p>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <h3>뽑기로 포켓몬 모으기</h3>
+            <p>10G 기본 뽑기 또는 50G 고급 뽑기로 포켓몬을 그리드에 배치하세요.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <h3>드래그로 합성·진화</h3>
+            <p>같은 종끼리는 레벨업/진화, 레시피에 맞는 페어는 전설·신화 창조.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <h3>웨이브 시작!</h3>
+            <p>적이 경로를 따라 이동. 공격력·상태이상·시너지로 50 웨이브를 돌파하세요.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="cta-bottom">
+        <h2>준비됐나요?</h2>
+        <p>계정 가입 없음. 광고 없음. 바로 플레이.</p>
+        <a href="/play" class="btn btn-primary">🎮 Get Started</a>
+      </section>
+
+      <footer>
+        <div>© 2026 포랜디 · 개인 토이 프로젝트</div>
+        <div style="margin-top: 10px;">
+          <a href="https://github.com/navskh/po-ran-de" target="_blank" rel="noopener">GitHub</a>
+          <a href="/play">게임 플레이</a>
+        </div>
+      </footer>
+    </div>
   </body>
 </html>
