@@ -5,7 +5,7 @@ import {
   HUD_HEIGHT, CONTROL_HEIGHT, cellCenter, cellScale, pointToCell, PATH_WAYPOINTS,
   STARTING_GOLD, STARTING_LIVES, GACHA_COST, ADVANCED_GACHA_COST,
   INITIAL_UNLOCKED_COLS, EXPAND_COL_COST, getExpandCost,
-  MAIN_GRID_COLS, isValidCell,
+  MAIN_GRID_COLS, isValidCell, BUFF_CELLS,
 } from '../game/balance';
 import { RECIPES, IRecipe } from '../data/recipes';
 import { getPokemon, rollRandomPokemonId, rollAdvancedRandomPokemonId, getSpriteKey, ALL_POKEMON_IDS } from '../data/pokemonData';
@@ -587,6 +587,35 @@ export class GameScene extends Phaser.Scene {
       }
     }
     void MAIN_GRID_COLS; void GRID_X; void GRID_Y;
+
+    // 보너스 셀 시각 표시 (배치 전략 유도)
+    for (const buff of BUFF_CELLS) {
+      const { x, y } = cellCenter(buff.col, buff.row);
+      // 바닥 글로우
+      const glow = this.add.rectangle(x, y, CELL_W - 10, CELL_H - 10, buff.color, 0.08)
+        .setStrokeStyle(2, buff.color, 0.7)
+        .setDepth(1);
+      // pulse 애니메이션
+      this.tweens.add({
+        targets: glow,
+        alpha: { from: 0.08, to: 0.25 },
+        duration: 1200,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.inOut',
+      });
+      // 아이콘 (셀 좌상단)
+      this.add.text(x - CELL_W / 2 + 12, y - CELL_H / 2 + 10, buff.icon, {
+        fontFamily: 'sans-serif', fontSize: '14px',
+      }).setOrigin(0.5).setDepth(2);
+      // 값 레이블 (셀 좌하단)
+      const label = buff.type === 'range' ? `R+${Math.round((buff.value - 1) * 100)}%`
+        : buff.type === 'attack' ? `A+${Math.round((buff.value - 1) * 100)}%`
+        : `S+${Math.round((buff.value - 1) * 100)}%`;
+      this.add.text(x, y + CELL_H / 2 - 10, label, {
+        fontFamily: 'monospace', fontSize: '9px', color: '#' + buff.color.toString(16).padStart(6, '0'),
+      }).setOrigin(0.5).setDepth(2);
+    }
   }
 
   private handleExpandCol() {
@@ -651,8 +680,23 @@ export class GameScene extends Phaser.Scene {
     makeBtn(attackY, '공격순', 0x1a3a3a, 0x44aaaa, () => this.handleSort('attack'));
     makeBtn(typeY, '타입순', 0x3a1a3a, 0xaa44aa, () => this.handleSort('type'));
 
-    // 속도 조절 버튼 (타입순 아래)
-    const speedY = typeY + 50;
+    // 최적 정렬 버튼 (path coverage + DPS + 시너지)
+    const optimalY = typeY + 50;
+    const optRect = this.add.rectangle(TRASH_X, optimalY, TRASH_W, 40, 0x3a2a1a, 0.6)
+      .setStrokeStyle(2, 0xffd34d, 0.85)
+      .setInteractive({ useHandCursor: true });
+    this.add.text(TRASH_X, optimalY - 8, '정렬', {
+      fontFamily: 'monospace', fontSize: '10px', color: '#ddddee',
+    }).setOrigin(0.5);
+    this.add.text(TRASH_X, optimalY + 6, '⚡최적', {
+      fontFamily: 'monospace', fontSize: '11px', color: '#ffd34d',
+    }).setOrigin(0.5);
+    optRect.on('pointerover', () => optRect.setFillStyle(0xffd34d, 0.3));
+    optRect.on('pointerout', () => optRect.setFillStyle(0x3a2a1a, 0.6));
+    optRect.on('pointerdown', () => this.handleSort('optimal'));
+
+    // 속도 조절 버튼
+    const speedY = optimalY + 50;
     const speedRect = this.add.rectangle(TRASH_X, speedY, TRASH_W, 40, 0x1a2a3a, 0.6)
       .setStrokeStyle(2, 0x66ddff, 0.85)
       .setInteractive({ useHandCursor: true });
@@ -668,20 +712,25 @@ export class GameScene extends Phaser.Scene {
     });
     void speedLabel;
 
-    // 키 힌트
-    const hintY = speedY + 40;
-    this.add.text(TRASH_X, hintY, 'D:뽑기 W:웨이브\nS:정렬 Space:정지\n1/2/3:속도 G:전체', {
-      fontFamily: 'monospace', fontSize: '9px', color: '#66688a', align: 'center',
+    // 키 힌트 (최적 추가로 공간 빡빡 → 간결하게)
+    const hintY = speedY + 32;
+    this.add.text(TRASH_X, hintY, 'D/F:뽑기\nW:웨이브\n1/2/3:속도\nG:전체', {
+      fontFamily: 'monospace', fontSize: '8px', color: '#66688a', align: 'center',
+      lineSpacing: 1,
     }).setOrigin(0.5, 0);
   }
 
-  private handleSort(mode: 'attack' | 'type') {
-    const changed = this.grid.sortAndRearrange(this, mode);
+  private handleSort(mode: 'attack' | 'type' | 'optimal') {
+    const changed = this.grid.sortAndRearrange(this, mode, this.enemyPath);
     if (!changed) {
       this.flashMessage('정렬할 포켓몬 없음', '#ff7b8c');
       return;
     }
-    this.flashMessage(mode === 'attack' ? '공격력 순 정렬' : '타입 순 정렬', '#7afcc9');
+    const label = mode === 'attack' ? '공격력 순 정렬' :
+                  mode === 'type' ? '타입 순 정렬' :
+                  '⚡ 최적 정렬 (DPS + 시너지 + 보너스 셀)';
+    const color = mode === 'optimal' ? '#ffd34d' : '#7afcc9';
+    this.flashMessage(label, color);
     this.events.emit('gridChanged');
   }
 

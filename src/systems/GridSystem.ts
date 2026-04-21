@@ -1,9 +1,12 @@
 import Phaser from 'phaser';
-import { GRID_COLS, GRID_ROWS, cellCenter, cellScale, isValidCell, INITIAL_UNLOCKED_COLS } from '../game/balance';
+import { GRID_COLS, GRID_ROWS, cellCenter, cellScale, isValidCell, INITIAL_UNLOCKED_COLS, BUFF_CELLS } from '../game/balance';
 import { TowerUnit } from '../entities/TowerUnit';
 import { SYNERGY_GROUPS, IActiveSynergy } from '../data/synergies';
 
-export type SortMode = 'attack' | 'type';
+export type SortMode = 'attack' | 'type' | 'optimal';
+
+// Splash/beam 타워 (광역) 판별 - CombatSystem과 동기화
+const SPLASH_IDS = new Set([6, 9, 143, 144, 145, 146, 150, 151, 130, 149, 76, 75]);
 
 export class GridSystem {
   cells: (TowerUnit | null)[][] = [];
@@ -150,9 +153,13 @@ export class GridSystem {
     return active;
   }
 
-  sortAndRearrange(scene: Phaser.Scene, mode: SortMode): boolean {
+  sortAndRearrange(scene: Phaser.Scene, mode: SortMode, enemyPath?: Phaser.Curves.Path): boolean {
     const towers = this.getAllTowers();
     if (towers.length === 0) return false;
+
+    if (mode === 'optimal') {
+      return this.sortOptimal(scene, towers, enemyPath);
+    }
 
     const sorted = [...towers].sort((a, b) => {
       if (mode === 'type') {
@@ -163,26 +170,84 @@ export class GridSystem {
       return b.computeAttack() - a.computeAttack();
     });
 
-    const validCells: { col: number; row: number }[] = [];
+    this.placeInOrder(scene, sorted, this.collectValidCells().map((c) => ({ ...c, score: 0 })));
+    return true;
+  }
+
+  private sortOptimal(scene: Phaser.Scene, towers: TowerUnit[], enemyPath?: Phaser.Curves.Path): boolean {
+    const cells = this.collectValidCells().map((c) => ({ ...c, score: 0 }));
+
+    // 1. 각 셀의 path coverage 점수 계산
+    if (enemyPath) {
+      const SAMPLES = 120;
+      const pts: { x: number; y: number }[] = [];
+      for (let i = 0; i < SAMPLES; i++) {
+        const p = enemyPath.getPoint(i / (SAMPLES - 1));
+        pts.push({ x: p.x, y: p.y });
+      }
+      // 평균 range로 coverage 계산 (구체적 매칭 전 대략)
+      const avgRange = towers.reduce((s, t) => s + t.computeRange(), 0) / Math.max(towers.length, 1);
+      for (const cell of cells) {
+        const { x, y } = cellCenter(cell.col, cell.row);
+        let count = 0;
+        for (const p of pts) {
+          const dx = p.x - x;
+          const dy = p.y - y;
+          if (dx * dx + dy * dy <= avgRange * avgRange) count++;
+        }
+        cell.score = count;
+      }
+    }
+    // 2. 보너스 셀에 가산점
+    for (const buff of BUFF_CELLS) {
+      const cell = cells.find((c) => c.col === buff.col && c.row === buff.row);
+      if (cell) cell.score += 30;
+    }
+
+    // 3. 활성 시너지 멤버 파악
+    const active = this.computeActiveSynergies(towers);
+    const synIds = new Set<number>();
+    for (const a of active) for (const id of a.group.memberIds) synIds.add(id);
+
+    // 4. 타워 DPS 평가 (시너지/광역 가중치)
+    const scored = towers.map((t) => {
+      const dps = t.computeAttack() * t.pokemon.attackSpeed;
+      const synBonus = synIds.has(t.pokemon.id) ? 1.3 : 1;
+      const splashBonus = SPLASH_IDS.has(t.pokemon.id) ? 1.2 : 1;
+      return { tower: t, score: dps * synBonus * splashBonus };
+    });
+
+    // 5. 점수 내림차순 정렬
+    scored.sort((a, b) => b.score - a.score);
+    cells.sort((a, b) => b.score - a.score);
+
+    this.placeInOrder(scene, scored.map((s) => s.tower), cells);
+    return true;
+  }
+
+  private collectValidCells(): { col: number; row: number }[] {
+    const cells: { col: number; row: number }[] = [];
     for (let r = 0; r < GRID_ROWS; r++) {
       for (let c = 0; c < Math.min(this.unlockedCols, GRID_COLS); c++) {
         if (!isValidCell(c, r)) continue;
-        validCells.push({ col: c, row: r });
+        cells.push({ col: c, row: r });
       }
     }
+    return cells;
+  }
 
+  private placeInOrder(scene: Phaser.Scene, towers: TowerUnit[], cells: { col: number; row: number }[]) {
+    // 기존 grid 클리어
     for (let r = 0; r < GRID_ROWS; r++) {
-      for (let c = 0; c < GRID_COLS; c++) {
-        this.cells[r][c] = null;
-      }
+      for (let c = 0; c < GRID_COLS; c++) this.cells[r][c] = null;
     }
-
-    for (let i = 0; i < sorted.length && i < validCells.length; i++) {
-      const { col, row } = validCells[i];
-      const unit = sorted[i];
+    for (let i = 0; i < towers.length && i < cells.length; i++) {
+      const { col, row } = cells[i];
+      const unit = towers[i];
       this.cells[row][col] = unit;
       unit.col = col;
       unit.row = row;
+      unit.applyCellBuff();
       const { x, y } = cellCenter(col, row);
       scene.tweens.add({
         targets: unit,
@@ -194,6 +259,22 @@ export class GridSystem {
         onUpdate: () => unit.syncRangeCircle(),
       });
     }
-    return true;
+  }
+
+  private computeActiveSynergies(towers: TowerUnit[]): IActiveSynergy[] {
+    const idSet = new Set<number>();
+    for (const t of towers) idSet.add(t.pokemon.id);
+    const active: IActiveSynergy[] = [];
+    for (const group of SYNERGY_GROUPS) {
+      if (group.requireAll) {
+        if (group.memberIds.every((id) => idSet.has(id))) {
+          active.push({ group, count: group.memberIds.length });
+        }
+      } else {
+        const count = towers.filter((t) => group.memberIds.includes(t.pokemon.id)).length;
+        if (count > 0) active.push({ group, count });
+      }
+    }
+    return active;
   }
 }

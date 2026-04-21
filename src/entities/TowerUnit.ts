@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { CELL_W, CELL_H } from '../game/balance';
+import { CELL_W, CELL_H, getBuffAt } from '../game/balance';
 import { IPokemon, getSpriteKey, RARITY_COLORS, getMaxLevel } from '../data/pokemonData';
 
 export class TowerUnit extends Phaser.GameObjects.Container {
@@ -14,6 +14,10 @@ export class TowerUnit extends Phaser.GameObjects.Container {
   buffAttack = 1;
   buffHp = 1;
   buffAttackSpeed = 1;
+  // 셀 버프 (보너스 셀에 배치됐을 때)
+  cellBuffAttack = 1;
+  cellBuffRange = 1;
+  cellBuffSpeed = 1;
   private sprite?: Phaser.GameObjects.Image;
   private nameText!: Phaser.GameObjects.Text;
   private starsText!: Phaser.GameObjects.Text;
@@ -93,7 +97,7 @@ export class TowerUnit extends Phaser.GameObjects.Container {
       this.bg.setFillStyle(rarityColor, 0.4);
       this.bg.setStrokeStyle(3, rarityColor, 1.0);
       if (!this.rangeCircle && this.scene) {
-        this.rangeCircle = this.scene.add.circle(this.x, this.y, this.pokemon.range, 0xffeebb, 0.06)
+        this.rangeCircle = this.scene.add.circle(this.x, this.y, this.computeRange(), 0xffeebb, 0.06)
           .setStrokeStyle(2, 0xffeebb, 0.5)
           .setDepth(60);
       }
@@ -149,7 +153,16 @@ export class TowerUnit extends Phaser.GameObjects.Container {
     this.row = row;
     this.setPosition(x, y);
     this.setScale(scale);
+    this.applyCellBuff();
     this.syncRangeCircle();
+  }
+
+  applyCellBuff() {
+    const buff = getBuffAt(this.col, this.row);
+    this.cellBuffAttack = buff?.type === 'attack' ? buff.value : 1;
+    this.cellBuffRange = buff?.type === 'range' ? buff.value : 1;
+    this.cellBuffSpeed = buff?.type === 'attackSpeed' ? buff.value : 1;
+    this.refreshBuffMark();
   }
 
   isMaxLevel(): boolean {
@@ -236,7 +249,7 @@ export class TowerUnit extends Phaser.GameObjects.Container {
   computeAttack(): number {
     const lvBonus = 1 + (this.level - 1) * 0.18;
     const starBonus = 1 + this.extraStars * 0.4;
-    return Math.floor(this.pokemon.attack * lvBonus * starBonus * this.buffAttack);
+    return Math.floor(this.pokemon.attack * lvBonus * starBonus * this.buffAttack * this.cellBuffAttack);
   }
 
   computeHp(): number {
@@ -245,8 +258,12 @@ export class TowerUnit extends Phaser.GameObjects.Container {
     return Math.floor(this.pokemon.hp * lvBonus * starBonus * this.buffHp);
   }
 
+  computeRange(): number {
+    return Math.floor(this.pokemon.range * this.cellBuffRange);
+  }
+
   canAttack(now: number): boolean {
-    const cooldownMs = 1000 / (this.pokemon.attackSpeed * this.buffAttackSpeed);
+    const cooldownMs = 1000 / (this.pokemon.attackSpeed * this.buffAttackSpeed * this.cellBuffSpeed);
     return now - this.lastAttackAt >= cooldownMs;
   }
 
@@ -262,7 +279,8 @@ export class TowerUnit extends Phaser.GameObjects.Container {
   }
 
   private refreshBuffMark() {
-    const hasBuff = this.buffAttack > 1.001 || this.buffHp > 1.001 || this.buffAttackSpeed > 1.001;
+    const hasBuff = this.buffAttack > 1.001 || this.buffHp > 1.001 || this.buffAttackSpeed > 1.001
+      || this.cellBuffAttack > 1.001 || this.cellBuffRange > 1.001 || this.cellBuffSpeed > 1.001;
     if (hasBuff) {
       if (!this.buffMark && this.scene) {
         this.buffMark = this.scene.add.text(CELL_W / 2 - 10, -CELL_H / 2 + 8, '⚡', {

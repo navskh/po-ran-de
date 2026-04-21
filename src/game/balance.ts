@@ -67,3 +67,30 @@ export function pointToCell(x: number, y: number): { col: number; row: number } 
 export function cellScale(_col: number): number {
   return 1;
 }
+
+// 보너스 셀: 특정 위치에 배치하면 버프 적용 (보드 전략 요소)
+export type BuffCellType = 'range' | 'attack' | 'attackSpeed';
+export interface IBuffCell {
+  col: number;
+  row: number;
+  type: BuffCellType;
+  value: number; // 1.3 = +30%
+  icon: string;
+  color: number;
+}
+
+export const BUFF_CELLS: IBuffCell[] = [
+  // 중앙 (path coverage 좋음): range +30%
+  { col: 3, row: 1, type: 'range',       value: 1.30, icon: '🎯', color: 0x66ddff },
+  { col: 3, row: 2, type: 'range',       value: 1.30, icon: '🎯', color: 0x66ddff },
+  // 상단 모서리: 공격력 +25%
+  { col: 1, row: 0, type: 'attack',      value: 1.25, icon: '⚔',  color: 0xff7b8c },
+  { col: 5, row: 0, type: 'attack',      value: 1.25, icon: '⚔',  color: 0xff7b8c },
+  // 하단 모서리: 공속 +20%
+  { col: 1, row: 3, type: 'attackSpeed', value: 1.20, icon: '⚡', color: 0xffd34d },
+  { col: 5, row: 3, type: 'attackSpeed', value: 1.20, icon: '⚡', color: 0xffd34d },
+];
+
+export function getBuffAt(col: number, row: number): IBuffCell | null {
+  return BUFF_CELLS.find((b) => b.col === col && b.row === row) ?? null;
+}

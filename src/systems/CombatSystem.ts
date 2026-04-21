@@ -62,7 +62,7 @@ export class CombatSystem {
   private findTarget(tower: TowerUnit): EnemyPokemon | null {
     let target: EnemyPokemon | null = null;
     let minDist = Infinity;
-    const range = tower.pokemon.range;
+    const range = tower.computeRange();
     for (const e of this.wave.enemies) {
       if (e.isDead) continue;
       const dx = e.x - tower.x;
