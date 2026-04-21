@@ -119,15 +119,15 @@ export class CombatSystem {
   }
 
   private applyStatusEffect(target: EnemyPokemon, attackType: PokemonType) {
-    const now = this.scene.time.now;
+    // duration 기반 (deltaMs 카운트다운) - 게임 속도/일시정지에 안전
     if (attackType === 'ice' || attackType === 'water') {
-      target.applySlow(0.5, now + 1500); // 50% 감속 1.5초
+      target.applySlow(0.5, 1500); // 50% 감속 1.5초
     } else if (attackType === 'rock' || attackType === 'ground') {
-      target.applySlow(0.7, now + 1200); // 30% 감속
+      target.applySlow(0.7, 1200); // 30% 감속 1.2초
     } else if (attackType === 'electric' && Math.random() < 0.15) {
-      target.applyStun(now + 500); // 15% 확률 0.5초 기절
+      target.applyStun(500); // 15% 확률 0.5초 기절 (보스 면역)
     } else if (attackType === 'poison' || attackType === 'fire') {
-      target.applyDot(3, 3, now); // 3 데미지씩 3틱 (1초 간격)
+      target.applyDot(3, 3); // 3 데미지씩 3틱 (1초 간격)
     }
   }
 

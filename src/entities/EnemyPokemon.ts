@@ -18,13 +18,13 @@ export class EnemyPokemon extends Phaser.GameObjects.Container {
   isBoss: boolean;
   isDead = false;
   reachedEnd = false;
-  // 상태이상
+  // 상태이상 (deltaMs 기반 카운트다운 - 게임 속도/일시정지에 안전)
   private slowFactor = 1; // 1 = 정상, 0.5 = 절반 속도
-  private slowUntil = 0;
-  private stunUntil = 0;
+  private slowRemaining = 0;
+  private stunRemaining = 0;
   private dotDamagePerTick = 0;
   private dotTicksRemaining = 0;
-  private dotLastTick = 0;
+  private dotAccumulator = 0;
   private statusIcon?: Phaser.GameObjects.Text;
   private path: Phaser.Curves.Path;
   private pathLength: number;
@@ -80,25 +80,35 @@ export class EnemyPokemon extends Phaser.GameObjects.Container {
 
   tick(deltaMs: number) {
     if (this.isDead) return;
-    const now = this.scene.time.now;
 
-    // 상태이상 만료 체크
-    if (this.slowUntil > 0 && now >= this.slowUntil) {
-      this.slowFactor = 1;
-      this.slowUntil = 0;
+    // 감속 카운트다운
+    if (this.slowRemaining > 0) {
+      this.slowRemaining -= deltaMs;
+      if (this.slowRemaining <= 0) {
+        this.slowFactor = 1;
+        this.slowRemaining = 0;
+      }
     }
-    // DoT 처리 (1초마다 1틱)
-    if (this.dotTicksRemaining > 0 && now - this.dotLastTick >= 1000) {
-      this.takeDamage(this.dotDamagePerTick);
-      this.dotLastTick = now;
-      this.dotTicksRemaining -= 1;
-      if (this.isDead) return;
+    // 기절 카운트다운
+    if (this.stunRemaining > 0) {
+      this.stunRemaining -= deltaMs;
+      if (this.stunRemaining < 0) this.stunRemaining = 0;
     }
-    // 상태 아이콘 갱신
+    // DoT 누적 (1초마다 1틱)
+    if (this.dotTicksRemaining > 0) {
+      this.dotAccumulator += deltaMs;
+      while (this.dotAccumulator >= 1000 && this.dotTicksRemaining > 0) {
+        this.takeDamage(this.dotDamagePerTick);
+        this.dotAccumulator -= 1000;
+        this.dotTicksRemaining -= 1;
+        if (this.isDead) return;
+      }
+      if (this.dotTicksRemaining === 0) this.dotAccumulator = 0;
+    }
     this.refreshStatusIcon();
 
     // 기절이면 이동 안함
-    if (now < this.stunUntil) return;
+    if (this.stunRemaining > 0) return;
 
     const effectiveSpeed = this.speed * this.slowFactor;
     this.pathProgress += (effectiveSpeed * deltaMs / 1000) / this.pathLength;
@@ -117,29 +127,32 @@ export class EnemyPokemon extends Phaser.GameObjects.Container {
     }
   }
 
-  applySlow(factor: number, until: number) {
-    // 더 강한 감속만 덮어씌움
-    if (factor < this.slowFactor || this.slowUntil === 0) {
-      this.slowFactor = factor;
+  applySlow(factor: number, durationMs: number) {
+    // 보스는 감속 절반만 적용
+    const effectiveFactor = this.isBoss ? Math.max(factor, 0.75) : factor;
+    const effectiveDuration = this.isBoss ? durationMs * 0.5 : durationMs;
+    if (effectiveFactor < this.slowFactor || this.slowRemaining === 0) {
+      this.slowFactor = effectiveFactor;
     }
-    this.slowUntil = Math.max(this.slowUntil, until);
+    this.slowRemaining = Math.max(this.slowRemaining, effectiveDuration);
   }
 
-  applyStun(until: number) {
-    this.stunUntil = Math.max(this.stunUntil, until);
+  applyStun(durationMs: number) {
+    // 보스는 기절 면역
+    if (this.isBoss) return;
+    // 최대 500ms 상한 (영구 기절 방지)
+    this.stunRemaining = Math.min(Math.max(this.stunRemaining, durationMs), 500);
   }
 
-  applyDot(damage: number, ticks: number, now: number) {
+  applyDot(damage: number, ticks: number) {
     this.dotDamagePerTick = damage;
     this.dotTicksRemaining = Math.max(this.dotTicksRemaining, ticks);
-    if (this.dotLastTick === 0) this.dotLastTick = now;
   }
 
   private refreshStatusIcon() {
-    const now = this.scene.time.now;
     let icon = '';
-    if (now < this.stunUntil) icon = '⚡';
-    else if (this.slowUntil > now) icon = '❄';
+    if (this.stunRemaining > 0) icon = '⚡';
+    else if (this.slowRemaining > 0) icon = '❄';
     else if (this.dotTicksRemaining > 0) icon = '☠';
 
     if (icon) {
