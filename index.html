@@ -46,11 +46,15 @@
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       :root {
+        /* 게임 컬러 팔레트와 동일 */
         --bg: #07080f;
-        --bg-soft: #11132a;
-        --accent: #ffd34d;
-        --accent-2: #6680ff;
-        --accent-3: #ff6699;
+        --bg-soft: #1a1c2f;       /* 게임 카드 배경 */
+        --bg-panel: #141528;      /* 게임 배경 상단 */
+        --accent: #ffd34d;        /* 골드 (게임 골드 UI) */
+        --accent-2: #6680ff;      /* 파랑 (게임 뽑기 버튼) */
+        --accent-3: #7afcc9;      /* 민트 (게임 웨이브 텍스트) */
+        --accent-cyan: #66ddff;   /* 시안 (게임 웨이브 시작 버튼) */
+        --accent-pink: #ff7b8c;   /* 핑크 (게임 라이프 텍스트) */
         --text: #e6e6f0;
         --muted: #9aa0c5;
       }
@@ -62,9 +66,9 @@
       }
       body {
         background:
-          radial-gradient(ellipse at top, rgba(102, 128, 255, 0.15), transparent 60%),
-          radial-gradient(ellipse at bottom, rgba(255, 102, 153, 0.08), transparent 60%),
-          var(--bg);
+          radial-gradient(ellipse at top, rgba(102, 128, 255, 0.18), transparent 60%),
+          radial-gradient(ellipse at bottom, rgba(122, 252, 201, 0.08), transparent 60%),
+          linear-gradient(180deg, var(--bg-panel), var(--bg));
         min-height: 100vh;
       }
       .container { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
@@ -116,7 +120,7 @@
         margin-bottom: 20px;
       }
       .hero h1 .highlight {
-        background: linear-gradient(120deg, var(--accent), var(--accent-3));
+        background: linear-gradient(120deg, var(--accent), var(--accent-cyan) 60%, var(--accent-3));
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
@@ -147,13 +151,14 @@
         border: none;
       }
       .btn-primary {
-        background: linear-gradient(135deg, var(--accent-2), var(--accent-3));
-        color: #fff;
-        box-shadow: 0 10px 30px rgba(102, 128, 255, 0.35);
+        background: linear-gradient(135deg, var(--accent-2), var(--accent-cyan));
+        color: #07080f;
+        font-weight: 800;
+        box-shadow: 0 10px 30px rgba(102, 221, 255, 0.35);
       }
       .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 14px 40px rgba(102, 128, 255, 0.5);
+        box-shadow: 0 14px 40px rgba(102, 221, 255, 0.55);
       }
       .btn-ghost {
         background: rgba(255, 255, 255, 0.06);
@@ -194,7 +199,8 @@
       }
       .feature:hover {
         transform: translateY(-4px);
-        border-color: rgba(102, 128, 255, 0.4);
+        border-color: rgba(122, 252, 201, 0.4);
+        box-shadow: 0 10px 30px rgba(102, 128, 255, 0.15);
       }
       .feature .icon {
         font-size: 28px;
@@ -229,11 +235,11 @@
         top: -14px; left: 20px;
         width: 36px; height: 36px;
         display: flex; align-items: center; justify-content: center;
-        background: linear-gradient(135deg, var(--accent-2), var(--accent-3));
+        background: linear-gradient(135deg, var(--accent-2), var(--accent-cyan));
         border-radius: 50%;
         font-weight: 800;
         font-size: 16px;
-        color: #fff;
+        color: #07080f;
       }
       .step h3 { font-size: 18px; font-weight: 700; margin: 10px 0 8px; }
       .step p { color: var(--muted); font-size: 14px; }
@@ -251,11 +257,14 @@
         padding: 28px 16px;
         border-radius: 16px;
         border: 1px solid rgba(255, 255, 255, 0.06);
+        transition: border-color 0.3s;
       }
+      .stat:hover { border-color: rgba(255, 211, 77, 0.35); }
       .stat .num {
         font-size: clamp(28px, 4vw, 40px);
         font-weight: 900;
         color: var(--accent);
+        text-shadow: 0 0 20px rgba(255, 211, 77, 0.3);
       }
       .stat .label {
         font-size: 12px;
