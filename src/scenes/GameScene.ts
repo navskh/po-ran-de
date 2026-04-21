@@ -21,7 +21,7 @@ import { TowerUnit } from '../entities/TowerUnit';
 import { Hud } from '../ui/Hud';
 import { ControlPanel } from '../ui/ControlPanel';
 
-const TRASH_X = 38;
+const TRASH_X = 200;   // 그리드 좌측 인접 (GRID_X 288 - TRASH_W/2 - 여유)
 const TRASH_Y = 360;
 const TRASH_W = 64;
 const TRASH_H = 110;

@@ -3,7 +3,7 @@ export const GRID_COLS = 9;
 export const GRID_ROWS = 4;
 export const CELL_W = 96;
 export const CELL_H = 110;
-export const GRID_X = 128;
+export const GRID_X = 288;  // 중앙 이동 (기존 128 + 160)
 export const GRID_Y = 130;
 
 export const EXT_COL_COUNT = 2;
@@ -12,15 +12,16 @@ export const EXT_VALID_ROWS: number[] = [0, 1, 2, 3];
 export const HUD_HEIGHT = 70;
 export const CONTROL_HEIGHT = 80;
 
+// GAME_WIDTH 1440 기준. 그리드 288~1152. path는 그 바깥쪽으로
 export const PATH_WAYPOINTS: Array<{ x: number; y: number }> = [
-  { x: 1100, y: 240 },
-  { x: 1015, y: 240 },
-  { x: 1015, y: 100 },
-  { x: 85,   y: 100 },
-  { x: 85,   y: 605 },
-  { x: 1015, y: 605 },
-  { x: 1015, y: 460 },
-  { x: 1100, y: 460 },
+  { x: 1400, y: 240 },
+  { x: 1180, y: 240 },
+  { x: 1180, y: 100 },
+  { x: 240,  y: 100 },
+  { x: 240,  y: 605 },
+  { x: 1180, y: 605 },
+  { x: 1180, y: 460 },
+  { x: 1400, y: 460 },
 ];
 
 export const STARTING_GOLD = 100;

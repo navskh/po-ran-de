@@ -43,6 +43,16 @@
       #game-container canvas {
         display: block;
       }
+      /* 모바일에선 장식 제거 + 여백 최소화 */
+      @media (max-width: 900px) {
+        #game-container {
+          box-shadow: none;
+          border-radius: 0;
+          width: 100vw;
+          height: 100vh;
+          height: 100dvh;
+        }
+      }
 
       /* 세로 모드: 가로 회전 안내 */
       #rotate-hint {

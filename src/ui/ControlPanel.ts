@@ -32,16 +32,17 @@ export class ControlPanel extends Phaser.GameObjects.Container {
     const line = scene.add.line(0, GAME_HEIGHT - CONTROL_HEIGHT, 0, 0, GAME_WIDTH, 0, 0x44476a, 0.8).setOrigin(0, 0);
     this.add([bg, line]);
 
-    const recipesBtn = this.makeSmallButton(scene, 70, y, '조합표', 0x4a3f70, 0x8866cc, onRecipes);
+    // GAME_WIDTH 1440 기준 중앙 정렬 (기존 좌표에 +208씩)
+    const recipesBtn = this.makeSmallButton(scene, 278, y, '조합표', 0x4a3f70, 0x8866cc, onRecipes);
     this.add(recipesBtn);
 
-    this.expandBtn = this.makeSmallButton(scene, 185, y, `칸+ ${getExpandCost(state.unlockedCols)}G`, 0x6a4a3f, 0xcc8866, onExpand);
+    this.expandBtn = this.makeSmallButton(scene, 393, y, `칸+ ${getExpandCost(state.unlockedCols)}G`, 0x6a4a3f, 0xcc8866, onExpand);
     this.expandLabel = this.expandBtn.getData('text') as Phaser.GameObjects.Text;
     this.add(this.expandBtn);
 
-    this.drawBtn = this.makeButton(scene, 350, y, `뽑기 ${GACHA_COST}G`, 0x4a5fc4, 0x6680ff, onDraw, 180);
-    this.advancedDrawBtn = this.makeButton(scene, 555, y, `고급뽑기 ${ADVANCED_GACHA_COST}G`, 0x7a4ac4, 0xaa66ff, onAdvancedDraw, 200);
-    const start = this.makeButton(scene, 770, y, '웨이브 시작', 0x4a8fc4, 0x66ddff, onStart, 180);
+    this.drawBtn = this.makeButton(scene, 558, y, `뽑기 ${GACHA_COST}G`, 0x4a5fc4, 0x6680ff, onDraw, 180);
+    this.advancedDrawBtn = this.makeButton(scene, 763, y, `고급뽑기 ${ADVANCED_GACHA_COST}G`, 0x7a4ac4, 0xaa66ff, onAdvancedDraw, 200);
+    const start = this.makeButton(scene, 978, y, '웨이브 시작', 0x4a8fc4, 0x66ddff, onStart, 180);
     this.startBtn = start;
     this.startLabel = start.getData('text') as Phaser.GameObjects.Text;
     this.add([this.drawBtn, this.advancedDrawBtn, this.startBtn]);

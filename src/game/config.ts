@@ -4,7 +4,7 @@ import { PreloadScene } from '../scenes/PreloadScene';
 import { GameScene } from '../scenes/GameScene';
 import { EndScene } from '../scenes/EndScene';
 
-export const GAME_WIDTH = 1024;
+export const GAME_WIDTH = 1440;
 export const GAME_HEIGHT = 720;
 
 export const gameConfig: Phaser.Types.Core.GameConfig = {
