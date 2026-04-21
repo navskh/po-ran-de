@@ -46,17 +46,17 @@
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       :root {
-        /* 게임 컬러 팔레트와 동일 */
-        --bg: #07080f;
-        --bg-soft: #1a1c2f;       /* 게임 카드 배경 */
-        --bg-panel: #141528;      /* 게임 배경 상단 */
-        --accent: #ffd34d;        /* 골드 (게임 골드 UI) */
-        --accent-2: #6680ff;      /* 파랑 (게임 뽑기 버튼) */
-        --accent-3: #7afcc9;      /* 민트 (게임 웨이브 텍스트) */
-        --accent-cyan: #66ddff;   /* 시안 (게임 웨이브 시작 버튼) */
-        --accent-pink: #ff7b8c;   /* 핑크 (게임 라이프 텍스트) */
-        --text: #e6e6f0;
-        --muted: #9aa0c5;
+        /* 포켓몬 공식 브랜드 컬러 (pokemon.com / pokemon.co.kr 기반) */
+        --bg: #050f24;            /* 가장 어두운 네이비 */
+        --bg-soft: #132a52;       /* 카드 배경 (공식 블루 다크) */
+        --bg-panel: #0a1a38;      /* 중간 네이비 */
+        --accent: #FFCB05;        /* 피카츄 옐로우 (공식) */
+        --accent-outline: #B3A125;/* 피카츄 옐로우 아웃라인 */
+        --accent-2: #2A75BB;      /* 포켓몬 블루 (공식) */
+        --accent-3: #EE1515;      /* 포켓볼 레드 (공식) */
+        --accent-cyan: #5BB5E8;   /* 라이트 블루 */
+        --text: #FFFFFF;
+        --muted: #9FB4DA;         /* 연한 블루 톤 */
       }
       html, body {
         background: var(--bg);
@@ -66,8 +66,8 @@
       }
       body {
         background:
-          radial-gradient(ellipse at top, rgba(102, 128, 255, 0.18), transparent 60%),
-          radial-gradient(ellipse at bottom, rgba(122, 252, 201, 0.08), transparent 60%),
+          radial-gradient(ellipse at top, rgba(42, 117, 187, 0.25), transparent 60%),
+          radial-gradient(ellipse at bottom, rgba(255, 203, 5, 0.06), transparent 70%),
           linear-gradient(180deg, var(--bg-panel), var(--bg));
         min-height: 100vh;
       }
@@ -103,13 +103,14 @@
       }
       .hero-badge {
         display: inline-block;
-        background: rgba(102, 128, 255, 0.12);
-        border: 1px solid rgba(102, 128, 255, 0.35);
-        color: var(--accent-2);
+        background: rgba(255, 203, 5, 0.1);
+        border: 1px solid rgba(255, 203, 5, 0.4);
+        color: var(--accent);
         padding: 6px 14px;
         border-radius: 999px;
         font-size: 12px;
-        font-weight: 600;
+        font-weight: 700;
+        letter-spacing: 0.02em;
         margin-bottom: 24px;
       }
       .hero h1 {
@@ -120,10 +121,12 @@
         margin-bottom: 20px;
       }
       .hero h1 .highlight {
-        background: linear-gradient(120deg, var(--accent), var(--accent-cyan) 60%, var(--accent-3));
+        /* 피카츄 옐로우 → 포켓볼 레드 (공식 포켓몬 로고 그라데이션) */
+        background: linear-gradient(120deg, var(--accent), #ff8800 50%, var(--accent-3));
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
+        text-shadow: 0 0 40px rgba(255, 203, 5, 0.2);
       }
       .hero p.lead {
         font-size: clamp(15px, 1.6vw, 18px);
@@ -151,14 +154,22 @@
         border: none;
       }
       .btn-primary {
-        background: linear-gradient(135deg, var(--accent-2), var(--accent-cyan));
-        color: #07080f;
+        /* 포켓볼 스타일: 빨강 배경 + 옐로우 아웃라인 glow */
+        background: linear-gradient(135deg, var(--accent-3), #c40808);
+        color: #ffffff;
         font-weight: 800;
-        box-shadow: 0 10px 30px rgba(102, 221, 255, 0.35);
+        border: 2px solid var(--accent);
+        box-shadow:
+          0 0 0 2px var(--accent-outline),
+          0 10px 30px rgba(238, 21, 21, 0.4),
+          0 0 20px rgba(255, 203, 5, 0.25);
       }
       .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 14px 40px rgba(102, 221, 255, 0.55);
+        box-shadow:
+          0 0 0 2px var(--accent),
+          0 14px 40px rgba(238, 21, 21, 0.55),
+          0 0 30px rgba(255, 203, 5, 0.4);
       }
       .btn-ghost {
         background: rgba(255, 255, 255, 0.06);
@@ -199,8 +210,8 @@
       }
       .feature:hover {
         transform: translateY(-4px);
-        border-color: rgba(122, 252, 201, 0.4);
-        box-shadow: 0 10px 30px rgba(102, 128, 255, 0.15);
+        border-color: rgba(255, 203, 5, 0.5);
+        box-shadow: 0 10px 30px rgba(42, 117, 187, 0.25);
       }
       .feature .icon {
         font-size: 28px;
@@ -231,15 +242,18 @@
         position: relative;
       }
       .step-num {
+        /* 포켓볼 스타일: 빨강 배경 + 흰 테두리 */
         position: absolute;
         top: -14px; left: 20px;
         width: 36px; height: 36px;
         display: flex; align-items: center; justify-content: center;
-        background: linear-gradient(135deg, var(--accent-2), var(--accent-cyan));
+        background: linear-gradient(180deg, var(--accent-3) 50%, #ffffff 50%);
+        border: 2px solid #1a1a1a;
         border-radius: 50%;
         font-weight: 800;
-        font-size: 16px;
-        color: #07080f;
+        font-size: 14px;
+        color: #1a1a1a;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
       }
       .step h3 { font-size: 18px; font-weight: 700; margin: 10px 0 8px; }
       .step p { color: var(--muted); font-size: 14px; }
@@ -264,7 +278,9 @@
         font-size: clamp(28px, 4vw, 40px);
         font-weight: 900;
         color: var(--accent);
-        text-shadow: 0 0 20px rgba(255, 211, 77, 0.3);
+        text-shadow:
+          0 0 2px var(--accent-outline),
+          0 0 24px rgba(255, 203, 5, 0.4);
       }
       .stat .label {
         font-size: 12px;
