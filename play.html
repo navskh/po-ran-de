@@ -23,6 +23,12 @@
         color: #e6e6f0;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         overflow: hidden;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: none; /* 스크롤/줌 방지, 드래그는 Phaser가 처리 */
+        overscroll-behavior: contain;
+      }
+      @supports (height: 100dvh) {
+        html, body { height: 100dvh; }
       }
       body {
         display: flex;
@@ -37,10 +43,52 @@
       #game-container canvas {
         display: block;
       }
+
+      /* 세로 모드: 가로 회전 안내 */
+      #rotate-hint {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(135deg, #132a52, #050f24);
+        z-index: 9999;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #FFCB05;
+        text-align: center;
+        padding: 40px 24px;
+      }
+      #rotate-hint .icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+        animation: rotate-hint 2s ease-in-out infinite;
+      }
+      #rotate-hint h2 {
+        font-size: 22px;
+        margin-bottom: 10px;
+        color: #FFCB05;
+      }
+      #rotate-hint p {
+        font-size: 14px;
+        color: #9FB4DA;
+        line-height: 1.6;
+      }
+      @keyframes rotate-hint {
+        0%, 100% { transform: rotate(-90deg); }
+        50%      { transform: rotate(0deg); }
+      }
+      @media (orientation: portrait) and (max-width: 900px) {
+        #rotate-hint { display: flex; }
+      }
     </style>
   </head>
   <body>
     <div id="game-container"></div>
+    <div id="rotate-hint" role="alert">
+      <div class="icon">📱</div>
+      <h2>가로 모드로 플레이해주세요</h2>
+      <p>기기를 옆으로 돌리면<br />게임이 화면에 꽉 채워집니다</p>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

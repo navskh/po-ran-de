@@ -22,6 +22,8 @@ export class TowerUnit extends Phaser.GameObjects.Container {
   private lastAttackAt = 0;
   private rangeCircle?: Phaser.GameObjects.Arc;
   private didDrag = false;
+  private longPressTimer?: Phaser.Time.TimerEvent;
+  private longPressFired = false;
 
   constructor(
     scene: Phaser.Scene,
@@ -44,12 +46,25 @@ export class TowerUnit extends Phaser.GameObjects.Container {
     this.bg.on('pointerout', () => this.setHover(false));
     this.bg.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       this.didDrag = false;
+      this.longPressFired = false;
       if (pointer.rightButtonDown()) {
         scene.events.emit('unitRightClick', this);
+        return;
       }
+      // Long-press (500ms): 모바일 우클릭 대체 = 버리기
+      this.longPressTimer = scene.time.delayedCall(500, () => {
+        this.longPressFired = true;
+        this.longPressTimer = undefined;
+        scene.events.emit('unitRightClick', this);
+      });
     });
     this.bg.on('pointerup', (pointer: Phaser.Input.Pointer) => {
+      if (this.longPressTimer) {
+        this.longPressTimer.remove();
+        this.longPressTimer = undefined;
+      }
       if (pointer.rightButtonReleased()) return;
+      if (this.longPressFired) return;
       if (!this.didDrag) {
         scene.events.emit('unitClick', this);
       }
@@ -64,6 +79,11 @@ export class TowerUnit extends Phaser.GameObjects.Container {
 
   markDragStarted() {
     this.didDrag = true;
+    if (this.longPressTimer) {
+      this.longPressTimer.remove();
+      this.longPressTimer = undefined;
+    }
+    this.longPressFired = false;
     this.setHover(false);
   }
 

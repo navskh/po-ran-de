@@ -82,6 +82,11 @@
         color: var(--text);
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
         line-height: 1.6;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation; /* 더블탭 줌 방지 */
+      }
+      @supports (height: 100dvh) {
+        body { min-height: 100dvh; }
       }
       body {
         background:
@@ -107,14 +112,49 @@
         font-weight: 700;
       }
       .brand img { width: 28px; height: 28px; }
-      nav a {
+      nav { position: relative; }
+      .nav-links {
+        display: flex;
+        gap: 20px;
+      }
+      .nav-links a {
         color: var(--muted);
         text-decoration: none;
         font-size: 14px;
-        margin-left: 20px;
         transition: color 0.2s;
       }
-      nav a:hover { color: var(--text); }
+      @media (hover: hover) {
+        .nav-links a:hover { color: var(--text); }
+      }
+      .hamburger {
+        display: none;
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 10px;
+        color: var(--text);
+        font-size: 22px;
+        width: 44px; height: 44px;
+        cursor: pointer;
+      }
+      @media (max-width: 640px) {
+        .hamburger { display: inline-flex; align-items: center; justify-content: center; }
+        .nav-links {
+          display: none;
+          position: absolute;
+          right: 0; top: 54px;
+          flex-direction: column;
+          background: var(--bg-soft);
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 12px;
+          padding: 16px 20px;
+          gap: 16px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+          z-index: 20;
+          min-width: 160px;
+        }
+        .nav-links.open { display: flex; }
+        .nav-links a { font-size: 16px; padding: 6px 0; }
+      }
 
       .hero {
         text-align: center;
@@ -453,9 +493,12 @@
           <span>포랜디</span>
         </div>
         <nav>
-          <a href="#features">특징</a>
-          <a href="#how">플레이 방법</a>
-          <a href="https://github.com/navskh/po-ran-de" target="_blank" rel="noopener">GitHub</a>
+          <button class="hamburger" aria-label="메뉴 열기" aria-expanded="false" aria-controls="nav-links-menu">☰</button>
+          <div class="nav-links" id="nav-links-menu">
+            <a href="#features">특징</a>
+            <a href="#how">플레이 방법</a>
+            <a href="https://github.com/navskh/po-ran-de" target="_blank" rel="noopener">GitHub</a>
+          </div>
         </nav>
       </header>
 
@@ -623,6 +666,29 @@
       </footer>
     </div>
 
+    <script>
+      // 햄버거 메뉴 토글
+      (function () {
+        const btn = document.querySelector('.hamburger');
+        const menu = document.querySelector('.nav-links');
+        if (!btn || !menu) return;
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const open = menu.classList.toggle('open');
+          btn.setAttribute('aria-expanded', String(open));
+        });
+        document.addEventListener('click', (e) => {
+          if (!menu.contains(e.target) && !btn.contains(e.target)) {
+            menu.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+          }
+        });
+        menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+          menu.classList.remove('open');
+          btn.setAttribute('aria-expanded', 'false');
+        }));
+      })();
+    </script>
     <script>
       (function () {
         const SPRITE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
