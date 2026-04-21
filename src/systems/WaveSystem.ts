@@ -70,6 +70,27 @@ export const WAVES: IWaveConfig[] = [
 
 export const TOTAL_WAVE_COUNT = WAVES.length;
 
+// 엔드리스 모드 풀
+const ENDLESS_POOL = [12, 15, 18, 26, 36, 40, 51, 53, 62, 68, 76, 94]; // 완전체 위주
+const ENDLESS_BOSSES = [150, 151, 249, 250, 251, 384, 483, 484, 493, 243, 244, 245, 649, 638];
+
+export function getWaveConfig(waveNum: number): IWaveConfig {
+  if (waveNum <= WAVES.length) return WAVES[waveNum - 1];
+  // 엔드리스 절차적 생성 (51부터)
+  const over = waveNum - WAVES.length; // 1, 2, 3...
+  const isBoss = over % 5 === 0;        // 55, 60, 65...마다 보스
+  if (isBoss) {
+    const bossIdx = Math.floor((over / 5 - 1) % ENDLESS_BOSSES.length);
+    const bossId = ENDLESS_BOSSES[bossIdx];
+    const bossHpMult = 280 + Math.floor(over / 5) * 120;
+    return { count: 1, pool: [], hpMult: 1.0, speedMult: 0.5, bossId, bossHpMult };
+  }
+  const count = Math.min(46 + Math.floor(over * 1.5), 80);
+  const hpMult = 19 + over * 0.7;
+  const speedMult = Math.min(2.5 + over * 0.025, 3.5);
+  return { count, pool: ENDLESS_POOL, hpMult, speedMult };
+}
+
 export class WaveSystem {
   enemies: EnemyPokemon[] = [];
   private spawnTimer?: Phaser.Time.TimerEvent;
@@ -84,7 +105,7 @@ export class WaveSystem {
   }
 
   private onWaveStart(wave: number) {
-    const cfg = WAVES[wave - 1];
+    const cfg = getWaveConfig(wave);
     if (!cfg) return;
 
     if (cfg.bossId !== undefined) {
@@ -129,10 +150,10 @@ export class WaveSystem {
     const idx = this.enemies.indexOf(enemy);
     if (idx >= 0) {
       this.enemies.splice(idx, 1);
-      const cfg = WAVES[this.state.wave - 1];
+      const cfg = getWaveConfig(this.state.wave);
       const hpMult = cfg ? cfg.hpMult : 1;
       const goldMult = 1 + (hpMult - 1) * 0.4;
-      // 보스 골드는 wave 비례: 80 + wave*12 (wave 5 = 140G, wave 50 = 680G)
+      // 보스 골드는 wave 비례: 80 + wave*12
       const baseGold = enemy.isBoss ? (80 + this.state.wave * 12) : ENEMY_KILL_GOLD;
       this.state.addGold(Math.max(1, Math.floor(baseGold * goldMult)));
       enemy.destroy();
@@ -158,6 +179,6 @@ export class WaveSystem {
   }
 
   hasMoreWaves(): boolean {
-    return this.state.wave < WAVES.length;
+    return true; // 엔드리스
   }
 }

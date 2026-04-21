@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 
 const DEX_STORAGE_KEY = 'porande-dex';
+const BEST_WAVE_STORAGE_KEY = 'porande-best-wave';
 
 export class GameState extends Phaser.Events.EventEmitter {
   private _gold: number;
@@ -10,6 +11,8 @@ export class GameState extends Phaser.Events.EventEmitter {
   private _isWaveActive = false;
   private _unlockedCols: number;
   private _dex: Set<number> = new Set();
+  private _bestWave = 0;
+  private _milestone50Fired = false;
 
   constructor(opts: { gold: number; lives: number; maxWave: number; unlockedCols: number }) {
     super();
@@ -19,6 +22,28 @@ export class GameState extends Phaser.Events.EventEmitter {
     this._maxWave = opts.maxWave;
     this._unlockedCols = opts.unlockedCols;
     this.loadDex();
+    this.loadBestWave();
+  }
+
+  private loadBestWave() {
+    try {
+      const raw = localStorage.getItem(BEST_WAVE_STORAGE_KEY);
+      if (raw) this._bestWave = parseInt(raw, 10) || 0;
+    } catch { /* ignore */ }
+  }
+
+  private saveBestWave() {
+    try {
+      if (this._wave > this._bestWave) {
+        this._bestWave = this._wave;
+        localStorage.setItem(BEST_WAVE_STORAGE_KEY, String(this._bestWave));
+        this.emit('bestWaveUpdated', this._bestWave);
+      }
+    } catch { /* ignore */ }
+  }
+
+  get bestWave(): number {
+    return this._bestWave;
   }
 
   private loadDex() {
@@ -89,7 +114,7 @@ export class GameState extends Phaser.Events.EventEmitter {
 
   startWave(): boolean {
     if (this._isWaveActive) return false;
-    if (this._wave >= this._maxWave) return false;
+    // 엔드리스: maxWave 제한 없이 무한 진행
     this._wave++;
     this._isWaveActive = true;
     this.emit('waveChanged', this._wave);
@@ -100,8 +125,10 @@ export class GameState extends Phaser.Events.EventEmitter {
   endWave() {
     this._isWaveActive = false;
     this.emit('waveEnd', this._wave);
-    if (this._wave >= this._maxWave) {
-      this.emit('victory');
+    this.saveBestWave();
+    if (this._wave === this._maxWave && !this._milestone50Fired) {
+      this._milestone50Fired = true;
+      this.emit('milestone50', this._wave);
     }
   }
 }

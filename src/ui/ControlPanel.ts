@@ -138,12 +138,15 @@ export class ControlPanel extends Phaser.GameObjects.Container {
     if (this.gameState.isWaveActive) {
       this.startBtn.setAlpha(0.5);
       this.startLabel.setText('웨이브 진행 중');
-    } else if (this.gameState.wave >= this.gameState.maxWave) {
-      this.startBtn.setAlpha(0.5);
-      this.startLabel.setText('완료');
     } else {
       this.startBtn.setAlpha(1.0);
-      this.startLabel.setText(this.gameState.wave === 0 ? '웨이브 시작' : '다음 웨이브');
+      if (this.gameState.wave === 0) {
+        this.startLabel.setText('웨이브 시작');
+      } else if (this.gameState.wave >= this.gameState.maxWave) {
+        this.startLabel.setText(`엔드리스 ${this.gameState.wave + 1 - this.gameState.maxWave}`);
+      } else {
+        this.startLabel.setText('다음 웨이브');
+      }
     }
   }
 }

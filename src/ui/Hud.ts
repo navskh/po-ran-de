@@ -7,6 +7,7 @@ export class Hud extends Phaser.GameObjects.Container {
   private goldText: Phaser.GameObjects.Text;
   private livesText: Phaser.GameObjects.Text;
   private waveText: Phaser.GameObjects.Text;
+  private bestText: Phaser.GameObjects.Text;
   private gameState: GameState;
 
   constructor(scene: Phaser.Scene, state: GameState) {
@@ -25,15 +26,20 @@ export class Hud extends Phaser.GameObjects.Container {
       fontFamily: 'monospace', fontSize: '20px', color: '#ff7b8c',
     }).setOrigin(0.5);
 
-    this.waveText = scene.add.text(GAME_WIDTH - 24, HUD_HEIGHT / 2, '', {
+    this.waveText = scene.add.text(GAME_WIDTH - 24, HUD_HEIGHT / 2 - 10, '', {
       fontFamily: 'monospace', fontSize: '20px', color: '#7afcc9',
     }).setOrigin(1, 0.5);
 
-    this.add([this.goldText, this.livesText, this.waveText]);
+    this.bestText = scene.add.text(GAME_WIDTH - 24, HUD_HEIGHT / 2 + 12, '', {
+      fontFamily: 'monospace', fontSize: '11px', color: '#aab0d4',
+    }).setOrigin(1, 0.5);
+
+    this.add([this.goldText, this.livesText, this.waveText, this.bestText]);
 
     state.on('goldChanged', () => this.refresh());
     state.on('livesChanged', () => this.refresh());
     state.on('waveChanged', () => this.refresh());
+    state.on('bestWaveUpdated', () => this.refresh());
 
     this.refresh();
     scene.add.existing(this as Phaser.GameObjects.GameObject);
@@ -42,6 +48,10 @@ export class Hud extends Phaser.GameObjects.Container {
   private refresh() {
     this.goldText.setText(`골드  ${this.gameState.gold}`);
     this.livesText.setText(`라이프  ${this.gameState.lives}`);
-    this.waveText.setText(`웨이브  ${this.gameState.wave} / ${this.gameState.maxWave}`);
+    const wave = this.gameState.wave;
+    const max = this.gameState.maxWave;
+    const display = wave > max ? `웨이브  ${wave} ♾` : `웨이브  ${wave} / ${max}`;
+    this.waveText.setText(display);
+    this.bestText.setText(this.gameState.bestWave > 0 ? `최고 기록  ${this.gameState.bestWave}` : '');
   }
 }

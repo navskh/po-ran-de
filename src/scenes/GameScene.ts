@@ -15,7 +15,7 @@ void RECIPES;
 import { GameState } from '../state/GameState';
 import { GridSystem } from '../systems/GridSystem';
 import { MergeSystem, IMergeEvaluation } from '../systems/MergeSystem';
-import { WaveSystem, TOTAL_WAVE_COUNT, WAVES } from '../systems/WaveSystem';
+import { WaveSystem, TOTAL_WAVE_COUNT, getWaveConfig } from '../systems/WaveSystem';
 import { CombatSystem } from '../systems/CombatSystem';
 import { TowerUnit } from '../entities/TowerUnit';
 import { Hud } from '../ui/Hud';
@@ -93,7 +93,12 @@ export class GameScene extends Phaser.Scene {
     this.state.on('waveChanged', () => this.refreshNextWavePreview());
     this.state.on('waveEnd', () => this.refreshNextWavePreview());
     this.state.on('gameOver', () => this.endGame(false));
-    this.state.on('victory', () => this.endGame(true));
+    this.state.on('milestone50', (w: number) => {
+      this.flashMessage(`🏆 ${w} 웨이브 클리어! 엔드리스 모드 진입!`, '#ffd34d');
+    });
+    this.state.on('bestWaveUpdated', (best: number) => {
+      this.flashMessage(`⭐ 최고 기록 갱신! 웨이브 ${best}`, '#66ddff');
+    });
     this.state.on('colsChanged', (n: number) => this.onColsChanged(n));
 
     this.input.dragDistanceThreshold = 8;
@@ -826,18 +831,15 @@ export class GameScene extends Phaser.Scene {
 
   private refreshNextWavePreview() {
     if (!this.nextWaveLabel) return;
-    const idx = this.state.wave;
-    if (idx >= WAVES.length) {
-      this.nextWaveLabel.setText('모든 웨이브 완료!');
-      return;
-    }
-    const next = WAVES[idx];
+    const nextWaveNum = this.state.wave + 1;
+    const next = getWaveConfig(nextWaveNum);
+    const endlessTag = nextWaveNum > TOTAL_WAVE_COUNT ? ' ♾' : '';
     if (next.bossId !== undefined) {
       const boss = getPokemon(next.bossId);
-      this.nextWaveLabel.setText(`다음 웨이브 ${idx + 1}: 보스 — ${boss.ko}`);
+      this.nextWaveLabel.setText(`다음 웨이브 ${nextWaveNum}${endlessTag}: 보스 — ${boss.ko}`);
     } else {
-      const names = next.pool.map((id) => getPokemon(id).ko).join(', ');
-      this.nextWaveLabel.setText(`다음 웨이브 ${idx + 1}: ${next.count}마리 (${names})`);
+      const names = next.pool.slice(0, 5).map((id) => getPokemon(id).ko).join(', ');
+      this.nextWaveLabel.setText(`다음 웨이브 ${nextWaveNum}${endlessTag}: ${next.count}마리 (${names})`);
     }
   }
 
