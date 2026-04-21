@@ -1,0 +1,18 @@
+{
+  "name": "포랜디 (Po-Ran-De)",
+  "short_name": "포랜디",
+  "description": "포켓몬 랜덤 디펜스 웹게임",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050f24",
+  "theme_color": "#FFCB05",
+  "lang": "ko-KR",
+  "icons": [
+    { "src": "/favicon-16.png", "sizes": "16x16", "type": "image/png" },
+    { "src": "/favicon-32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "/favicon-48.png", "sizes": "48x48", "type": "image/png" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "/android-chrome-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/android-chrome-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
