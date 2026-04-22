@@ -21,35 +21,47 @@ export class EndScene extends Phaser.Scene {
   create() {
     const cx = GAME_WIDTH / 2;
     const cy = GAME_HEIGHT / 2;
+    const res = Math.max(2, Math.floor(window.devicePixelRatio || 1));
+
+    // 엔드리스 달성 (50 이상 클리어 후 사망)
+    const isEndless = !this.endData.victory && this.endData.wave > this.endData.maxWave;
 
     const bg = this.add.graphics();
     if (this.endData.victory) {
       bg.fillGradientStyle(0x1a1428, 0x1a1428, 0x6b3a1c, 0x6b3a1c, 1);
+    } else if (isEndless) {
+      bg.fillGradientStyle(0x1a1828, 0x1a1828, 0x3a2f1a, 0x3a2f1a, 1);
     } else {
       bg.fillGradientStyle(0x1a1828, 0x1a1828, 0x4a1a1a, 0x4a1a1a, 1);
     }
     bg.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-    const titleText = this.endData.victory ? '승리!' : '게임 오버';
-    const titleColor = this.endData.victory ? '#ffd34d' : '#ff5566';
+    const titleText = this.endData.victory
+      ? '승리!'
+      : isEndless
+        ? '🎉 축하합니다!'
+        : '게임 오버';
+    const titleColor = this.endData.victory || isEndless ? '#ffd34d' : '#ff5566';
 
     this.add.text(cx, cy - 100, titleText, {
       fontFamily: 'Arial Black, sans-serif', fontSize: '88px', color: titleColor,
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setResolution(res);
 
     const subText = this.endData.victory
       ? `모든 ${this.endData.maxWave}개 웨이브 클리어!`
-      : `웨이브 ${this.endData.wave} / ${this.endData.maxWave} 까지 도달`;
+      : isEndless
+        ? `엔드리스 웨이브 ${this.endData.wave}까지 도달했습니다!`
+        : `웨이브 ${this.endData.wave} / ${this.endData.maxWave} 까지 도달`;
     this.add.text(cx, cy, subText, {
       fontFamily: 'sans-serif', fontSize: '22px', color: '#ddddee',
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setResolution(res);
 
     const btn = this.add.rectangle(cx, cy + 100, 220, 60, 0x4a5fc4)
       .setStrokeStyle(2, 0x88aaff)
       .setInteractive({ useHandCursor: true });
     this.add.text(cx, cy + 100, '다시 시작', {
       fontFamily: 'monospace', fontSize: '20px', color: '#ffffff',
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setResolution(res);
 
     btn.on('pointerover', () => btn.setFillStyle(0x6680ff));
     btn.on('pointerout', () => btn.setFillStyle(0x4a5fc4));

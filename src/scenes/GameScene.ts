@@ -4,11 +4,12 @@ import {
   GRID_COLS, GRID_ROWS, CELL_W, CELL_H, GRID_X, GRID_Y,
   HUD_HEIGHT, CONTROL_HEIGHT, cellCenter, cellScale, pointToCell, PATH_WAYPOINTS,
   STARTING_GOLD, STARTING_LIVES, GACHA_COST, ADVANCED_GACHA_COST,
+  LEGENDARY_GACHA_COST, MYTHIC_GACHA_COST,
   INITIAL_UNLOCKED_COLS, EXPAND_COL_COST, getExpandCost,
   MAIN_GRID_COLS, isValidCell, BUFF_CELLS,
 } from '../game/balance';
 import { RECIPES, IRecipe } from '../data/recipes';
-import { getPokemon, rollRandomPokemonId, rollAdvancedRandomPokemonId, getSpriteKey, ALL_POKEMON_IDS } from '../data/pokemonData';
+import { getPokemon, rollRandomPokemonId, rollAdvancedRandomPokemonId, rollLegendaryPokemonId, rollMythicPokemonId, getSpriteKey, ALL_POKEMON_IDS } from '../data/pokemonData';
 import { RECIPE_PAGES } from '../data/recipes';
 import { SYNERGY_GROUPS } from '../data/synergies';
 void RECIPES;
@@ -89,6 +90,8 @@ export class GameScene extends Phaser.Scene {
       this.state,
       () => this.handleDraw(),
       () => this.handleAdvancedDraw(),
+      () => this.handleLegendaryDraw(),
+      () => this.handleMythicDraw(),
       () => this.handleStartWave(),
       () => this.openRecipes(),
       () => this.handleExpandCol(),
@@ -491,6 +494,14 @@ export class GameScene extends Phaser.Scene {
 
   private handleAdvancedDraw() {
     this.spawnDrawnUnit(ADVANCED_GACHA_COST, rollAdvancedRandomPokemonId);
+  }
+
+  private handleLegendaryDraw() {
+    this.spawnDrawnUnit(LEGENDARY_GACHA_COST, rollLegendaryPokemonId);
+  }
+
+  private handleMythicDraw() {
+    this.spawnDrawnUnit(MYTHIC_GACHA_COST, rollMythicPokemonId);
   }
 
   private spawnDrawnUnit(cost: number, roller: () => number) {

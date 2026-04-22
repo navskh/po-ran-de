@@ -1,12 +1,18 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../game/config';
-import { CONTROL_HEIGHT, GACHA_COST, ADVANCED_GACHA_COST, GRID_COLS, getExpandCost } from '../game/balance';
+import {
+  CONTROL_HEIGHT, GACHA_COST, ADVANCED_GACHA_COST,
+  LEGENDARY_GACHA_COST, MYTHIC_GACHA_COST,
+  GRID_COLS, getExpandCost,
+} from '../game/balance';
 import { GameState } from '../state/GameState';
 
 export class ControlPanel extends Phaser.GameObjects.Container {
   private gameState: GameState;
   private drawBtn: Phaser.GameObjects.Container;
   private advancedDrawBtn: Phaser.GameObjects.Container;
+  private legendaryDrawBtn: Phaser.GameObjects.Container;
+  private mythicDrawBtn: Phaser.GameObjects.Container;
   private startBtn: Phaser.GameObjects.Container;
   private startLabel: Phaser.GameObjects.Text;
 
@@ -18,6 +24,8 @@ export class ControlPanel extends Phaser.GameObjects.Container {
     state: GameState,
     onDraw: () => void,
     onAdvancedDraw: () => void,
+    onLegendaryDraw: () => void,
+    onMythicDraw: () => void,
     onStart: () => void,
     onRecipes: () => void,
     onExpand: () => void,
@@ -32,24 +40,28 @@ export class ControlPanel extends Phaser.GameObjects.Container {
     const line = scene.add.line(0, GAME_HEIGHT - CONTROL_HEIGHT, 0, 0, GAME_WIDTH, 0, 0x44476a, 0.8).setOrigin(0, 0);
     this.add([bg, line]);
 
-    // GAME_WIDTH 1440 기준 중앙 정렬 (기존 좌표에 +208씩)
-    const recipesBtn = this.makeSmallButton(scene, 278, y, '조합표', 0x4a3f70, 0x8866cc, onRecipes);
+    // 7개 버튼 중앙 정렬 (110+110+170+170+170+170+180 + gaps)
+    const recipesBtn = this.makeSmallButton(scene, 205, y, '조합표', 0x4a3f70, 0x8866cc, onRecipes);
     this.add(recipesBtn);
 
-    this.expandBtn = this.makeSmallButton(scene, 393, y, `칸+ ${getExpandCost(state.unlockedCols)}G`, 0x6a4a3f, 0xcc8866, onExpand);
+    this.expandBtn = this.makeSmallButton(scene, 325, y, `칸+ ${getExpandCost(state.unlockedCols)}G`, 0x6a4a3f, 0xcc8866, onExpand);
     this.expandLabel = this.expandBtn.getData('text') as Phaser.GameObjects.Text;
     this.add(this.expandBtn);
 
-    this.drawBtn = this.makeButton(scene, 558, y, `뽑기 ${GACHA_COST}G`, 0x4a5fc4, 0x6680ff, onDraw, 180);
-    this.advancedDrawBtn = this.makeButton(scene, 763, y, `고급뽑기 ${ADVANCED_GACHA_COST}G`, 0x7a4ac4, 0xaa66ff, onAdvancedDraw, 200);
-    const start = this.makeButton(scene, 978, y, '웨이브 시작', 0x4a8fc4, 0x66ddff, onStart, 180);
+    this.drawBtn = this.makeButton(scene, 475, y, `뽑기 ${GACHA_COST}G`, 0x4a5fc4, 0x6680ff, onDraw, 170);
+    this.advancedDrawBtn = this.makeButton(scene, 655, y, `고급뽑기 ${ADVANCED_GACHA_COST}G`, 0x7a4ac4, 0xaa66ff, onAdvancedDraw, 170);
+    this.legendaryDrawBtn = this.makeButton(scene, 835, y, `전설뽑기 ${LEGENDARY_GACHA_COST}G`, 0xc4833a, 0xff9933, onLegendaryDraw, 170);
+    this.mythicDrawBtn = this.makeButton(scene, 1015, y, `신화뽑기 ${MYTHIC_GACHA_COST}G`, 0xa43ac4, 0xff66ff, onMythicDraw, 170);
+    const start = this.makeButton(scene, 1200, y, '웨이브 시작', 0x4a8fc4, 0x66ddff, onStart, 180);
     this.startBtn = start;
     this.startLabel = start.getData('text') as Phaser.GameObjects.Text;
-    this.add([this.drawBtn, this.advancedDrawBtn, this.startBtn]);
+    this.add([this.drawBtn, this.advancedDrawBtn, this.legendaryDrawBtn, this.mythicDrawBtn, this.startBtn]);
 
     state.on('goldChanged', (gold: number) => {
       this.refreshDrawBtn(gold);
       this.refreshAdvancedDrawBtn(gold);
+      this.refreshLegendaryDrawBtn(gold);
+      this.refreshMythicDrawBtn(gold);
       this.refreshExpandBtn(gold);
     });
     state.on('waveStart', () => this.refreshStartBtn());
@@ -58,6 +70,8 @@ export class ControlPanel extends Phaser.GameObjects.Container {
 
     this.refreshDrawBtn(state.gold);
     this.refreshAdvancedDrawBtn(state.gold);
+    this.refreshLegendaryDrawBtn(state.gold);
+    this.refreshMythicDrawBtn(state.gold);
     this.refreshStartBtn();
     this.refreshExpandBtn(state.gold);
     scene.add.existing(this as Phaser.GameObjects.GameObject);
@@ -133,6 +147,16 @@ export class ControlPanel extends Phaser.GameObjects.Container {
   private refreshAdvancedDrawBtn(gold: number) {
     const enough = gold >= ADVANCED_GACHA_COST;
     this.advancedDrawBtn.setAlpha(enough ? 1.0 : 0.5);
+  }
+
+  private refreshLegendaryDrawBtn(gold: number) {
+    const enough = gold >= LEGENDARY_GACHA_COST;
+    this.legendaryDrawBtn.setAlpha(enough ? 1.0 : 0.4);
+  }
+
+  private refreshMythicDrawBtn(gold: number) {
+    const enough = gold >= MYTHIC_GACHA_COST;
+    this.mythicDrawBtn.setAlpha(enough ? 1.0 : 0.4);
   }
 
   private refreshStartBtn() {

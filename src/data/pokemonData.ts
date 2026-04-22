@@ -421,3 +421,25 @@ export function rollAdvancedRandomPokemonId(): number {
   return candidates[Math.floor(Math.random() * candidates.length)];
 }
 void ADVANCED_LEGENDARY_POOL;
+
+// 전설뽑기 풀 (rarity 5 전체)
+export const LEGENDARY_GACHA_POOL: number[] = [
+  144, 145, 146, 150, 151,       // 1세대 전설
+  243, 244, 245,                 // 2세대 전설수
+  249, 250, 251,                 // 2세대 전설 (루기아/호오/세레비)
+  384,                           // 3세대 전설 (레쿠쟈)
+  638, 649,                      // 5세대 전설
+];
+
+// 신화뽑기 풀 (rarity 6)
+export const MYTHIC_GACHA_POOL: number[] = [
+  483, 484, 493,                 // 디아루가/펄기아/아르세우스
+];
+
+export function rollLegendaryPokemonId(): number {
+  return LEGENDARY_GACHA_POOL[Math.floor(Math.random() * LEGENDARY_GACHA_POOL.length)];
+}
+
+export function rollMythicPokemonId(): number {
+  return MYTHIC_GACHA_POOL[Math.floor(Math.random() * MYTHIC_GACHA_POOL.length)];
+}
