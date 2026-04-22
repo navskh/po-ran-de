@@ -712,12 +712,7 @@ export class GameScene extends Phaser.Scene {
     });
     void speedLabel;
 
-    // 키 힌트 (간결)
-    const hintY = speedY + 32;
-    this.add.text(TRASH_X, hintY, 'D/F:뽑기\nW:웨이브\n1/2/3:속도', {
-      fontFamily: 'monospace', fontSize: '8px', color: '#66688a', align: 'center',
-      lineSpacing: 1,
-    }).setOrigin(0.5, 0);
+    // 키 힌트는 조합표에 있으니 좁은 하단 여백 문제로 제거
   }
 
   private handleSort(mode: 'attack' | 'type' | 'optimal') {
@@ -1416,9 +1411,9 @@ export class GameScene extends Phaser.Scene {
       fontFamily: 'monospace', fontSize: '13px', color: '#ddddee',
     }).setOrigin(0.5));
 
-    // 그리드: 12열 × 행수
-    const cols = 13;
-    const cellSize = 58;
+    // 그리드: 14열 × 행수 (모달 내 fit)
+    const cols = 14;
+    const cellSize = 48;
     const gridW = cols * cellSize;
     const startX = cx - gridW / 2 + cellSize / 2;
     const startY = cy - h / 2 + 82;
@@ -1436,7 +1431,7 @@ export class GameScene extends Phaser.Scene {
       container.add(bg);
 
       if (this.textures.exists(getSpriteKey(id))) {
-        const img = this.add.image(x, y, getSpriteKey(id)).setScale(0.52);
+        const img = this.add.image(x, y, getSpriteKey(id)).setScale(0.42);
         if (!has) {
           img.setTint(0x000000);
           img.setAlpha(0.75);
