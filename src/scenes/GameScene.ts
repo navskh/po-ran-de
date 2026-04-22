@@ -23,6 +23,7 @@ import { TowerUnit } from '../entities/TowerUnit';
 import { Hud } from '../ui/Hud';
 import { ControlPanel } from '../ui/ControlPanel';
 import { ACHIEVEMENTS } from '../data/achievements';
+import { saveProfile } from '../lib/firestore';
 
 const TRASH_X = 200;   // 그리드 좌측 인접 (GRID_X 288 - TRASH_W/2 - 여유)
 const TRASH_Y = 360;
@@ -108,6 +109,7 @@ export class GameScene extends Phaser.Scene {
     });
     this.state.on('bestWaveUpdated', (best: number) => {
       this.flashMessage(`⭐ 최고 기록 갱신! 웨이브 ${best}`, '#66ddff');
+      saveProfile(best);
     });
     this.state.on('colsChanged', (n: number) => {
       this.onColsChanged(n);

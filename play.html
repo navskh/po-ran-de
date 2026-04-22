@@ -280,58 +280,162 @@
       }
 
       .local-best-card {
-        padding: 28px 20px;
+        padding: 18px 20px;
         background: linear-gradient(135deg, rgba(255,203,5,0.12), rgba(42,117,187,0.12));
-        border: 2px solid rgba(255,203,5,0.35);
-        border-radius: 18px;
+        border: 1.5px solid rgba(255,203,5,0.35);
+        border-radius: 14px;
         margin-bottom: 16px;
-        position: relative;
-        overflow: hidden;
-      }
-      .local-best-card::before {
-        content: '👑';
-        position: absolute;
-        top: 8px;
-        right: 12px;
-        font-size: 20px;
-        opacity: 0.4;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
       }
       .local-best-card .label {
         color: #9FB4DA;
-        font-size: 12px;
-        letter-spacing: 2px;
-        margin-bottom: 10px;
+        font-size: 11px;
+        letter-spacing: 1.5px;
         font-weight: 600;
+        display: block;
+        margin-bottom: 2px;
+      }
+      .local-best-card .me-name {
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
       }
       .local-best-card .wave-num {
         color: #FFCB05;
-        font-size: 56px;
+        font-size: 32px;
         font-weight: 900;
         line-height: 1;
-        text-shadow: 0 4px 20px rgba(255,203,5,0.4);
       }
       .local-best-card .wave-label {
         color: #FFCB05;
-        font-size: 14px;
-        font-weight: 800;
-        margin-top: 8px;
-        letter-spacing: 3px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 2px;
       }
 
-      .coming-soon {
-        padding: 16px;
-        background: rgba(255,255,255,0.04);
-        border: 1px dashed rgba(255,255,255,0.15);
-        border-radius: 12px;
+      .lb-section-title {
+        text-align: left;
         color: #9FB4DA;
-        font-size: 12px;
-        margin-bottom: 18px;
-        line-height: 1.6;
+        font-size: 11px;
+        letter-spacing: 2px;
+        font-weight: 700;
+        margin: 4px 4px 8px;
       }
-      .coming-soon .emoji {
-        font-size: 18px;
+      .lb-list {
+        max-height: 340px;
+        overflow-y: auto;
+        margin-bottom: 16px;
+        padding-right: 4px;
+      }
+      .lb-list::-webkit-scrollbar { width: 4px; }
+      .lb-list::-webkit-scrollbar-thumb {
+        background: rgba(255,203,5,0.3);
+        border-radius: 2px;
+      }
+
+      .lb-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        margin-bottom: 6px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.05);
+        transition: background 0.15s;
+      }
+      .lb-row.me {
+        background: linear-gradient(135deg, rgba(255,203,5,0.1), rgba(42,117,187,0.08));
+        border-color: rgba(255,203,5,0.35);
+      }
+      .lb-row.rank-1 {
+        background: linear-gradient(135deg, rgba(255,203,5,0.15), rgba(255,165,0,0.08));
+        border-color: rgba(255,203,5,0.45);
+      }
+      .lb-row.rank-2 {
+        background: linear-gradient(135deg, rgba(200,200,220,0.1), rgba(150,160,180,0.05));
+        border-color: rgba(200,200,220,0.25);
+      }
+      .lb-row.rank-3 {
+        background: linear-gradient(135deg, rgba(196,115,63,0.12), rgba(140,80,45,0.06));
+        border-color: rgba(196,115,63,0.35);
+      }
+      .lb-rank {
+        font-size: 14px;
+        font-weight: 900;
+        width: 32px;
+        text-align: center;
+        color: #9FB4DA;
+      }
+      .lb-row.rank-1 .lb-rank { color: #FFCB05; font-size: 18px; }
+      .lb-row.rank-2 .lb-rank { color: #d8dce8; font-size: 16px; }
+      .lb-row.rank-3 .lb-rank { color: #e89063; font-size: 16px; }
+
+      .lb-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #2a2d45;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 700;
+        color: #9FB4DA;
+        flex-shrink: 0;
+        object-fit: cover;
+      }
+      .lb-name {
+        flex: 1;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-align: left;
+      }
+      .lb-wave {
+        color: #FFCB05;
+        font-size: 14px;
+        font-weight: 800;
+      }
+      .lb-wave-label {
+        color: rgba(255,203,5,0.6);
+        font-size: 10px;
+        margin-left: 2px;
+      }
+
+      .lb-empty, .lb-loading {
+        padding: 24px 16px;
+        text-align: center;
+        color: #9FB4DA;
+        font-size: 13px;
+        background: rgba(255,255,255,0.03);
+        border: 1px dashed rgba(255,255,255,0.1);
+        border-radius: 10px;
+        margin-bottom: 14px;
+      }
+      .lb-empty .emoji, .lb-loading .emoji {
+        font-size: 22px;
         display: block;
-        margin-bottom: 4px;
+        margin-bottom: 6px;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .lb-loading .emoji { animation: spin 1s linear infinite; display: inline-block; }
+
+      .lb-login-hint {
+        padding: 10px 14px;
+        background: rgba(42,117,187,0.08);
+        border: 1px solid rgba(42,117,187,0.25);
+        border-radius: 10px;
+        color: #9FB4DA;
+        font-size: 11px;
+        margin-bottom: 14px;
+        line-height: 1.5;
       }
 
       .leaderboard-close-btn {
@@ -453,15 +557,26 @@
         <div class="leaderboard-title">🏆 명예의 전당</div>
 
         <div class="local-best-card">
-          <div class="label">내 최고 기록</div>
-          <div class="wave-num" id="leaderboard-wave">0</div>
-          <div class="wave-label">WAVE</div>
+          <div>
+            <span class="label">내 최고 기록</span>
+            <div class="me-name" id="lb-me-name">게스트</div>
+          </div>
+          <div style="text-align:right">
+            <div class="wave-num" id="leaderboard-wave">0</div>
+            <div class="wave-label">WAVE</div>
+          </div>
         </div>
 
-        <div class="coming-soon">
-          <span class="emoji">🌍</span>
-          글로벌 랭킹은 곧 제공됩니다!<br />
-          <span style="opacity:0.7">(Firestore 연동 예정)</span>
+        <div id="lb-login-hint" class="lb-login-hint" style="display:none;">
+          💡 Google 로그인하면 내 기록이 글로벌 랭킹에 등록돼요
+        </div>
+
+        <div class="lb-section-title">🌍 TOP 10 글로벌 랭킹</div>
+        <div id="lb-list" class="lb-list">
+          <div class="lb-loading">
+            <span class="emoji">⚙️</span>
+            불러오는 중...
+          </div>
         </div>
 
         <button class="leaderboard-close-btn" id="btn-leaderboard-close">닫기</button>
@@ -478,7 +593,8 @@
     <script type="module" src="/src/main.ts"></script>
 
     <script type="module">
-      import { signInWithGoogle, signOut, onAuthChange } from '/src/lib/firebase.ts';
+      import { signInWithGoogle, signOut, onAuthChange, auth } from '/src/lib/firebase.ts';
+      import { getLeaderboard, saveProfile } from '/src/lib/firestore.ts';
 
       const overlay = document.getElementById('start-overlay');
       const loggedOut = document.getElementById('start-logged-out');
@@ -488,23 +604,94 @@
       const bestRecordWave = document.getElementById('best-record-wave');
       const leaderboardModal = document.getElementById('leaderboard-modal');
       const leaderboardWave = document.getElementById('leaderboard-wave');
+      const meName = document.getElementById('lb-me-name');
+      const loginHint = document.getElementById('lb-login-hint');
+      const lbList = document.getElementById('lb-list');
+
+      let currentUser = null;
+
+      function getLocalBest() {
+        return parseInt(localStorage.getItem('porande-best-wave') || '0', 10);
+      }
 
       function refreshBest() {
-        const best = parseInt(localStorage.getItem('porande-best-wave') || '0', 10);
+        const best = getLocalBest();
         bestRecordWave.textContent = best;
         leaderboardWave.textContent = best;
       }
       refreshBest();
 
+      function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, (c) => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+        }[c]));
+      }
+
+      function initials(name) {
+        if (!name) return '?';
+        const t = name.trim();
+        return t.charAt(0).toUpperCase();
+      }
+
+      function renderLeaderboard(entries) {
+        if (!entries || entries.length === 0) {
+          lbList.innerHTML = `
+            <div class="lb-empty">
+              <span class="emoji">🏁</span>
+              아직 기록이 없어요<br />
+              <span style="opacity:0.7;font-size:11px">첫 번째 기록의 주인공이 되어보세요!</span>
+            </div>`;
+          return;
+        }
+        const myUid = currentUser?.uid;
+        const html = entries.map((e, i) => {
+          const rank = i + 1;
+          const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}`;
+          const rankClass = `rank-${rank <= 3 ? rank : 'n'}`;
+          const meClass = e.uid === myUid ? ' me' : '';
+          const avatar = e.photoURL
+            ? `<img class="lb-avatar" src="${escapeHtml(e.photoURL)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'), {className:'lb-avatar',textContent:'${escapeHtml(initials(e.displayName))}'}))" />`
+            : `<div class="lb-avatar">${escapeHtml(initials(e.displayName))}</div>`;
+          return `
+            <div class="lb-row ${rankClass}${meClass}">
+              <div class="lb-rank">${medal}</div>
+              ${avatar}
+              <div class="lb-name">${escapeHtml(e.displayName || '익명 트레이너')}</div>
+              <div>
+                <span class="lb-wave">${e.bestWave}</span><span class="lb-wave-label">W</span>
+              </div>
+            </div>`;
+        }).join('');
+        lbList.innerHTML = html;
+      }
+
+      async function loadLeaderboard() {
+        lbList.innerHTML = `
+          <div class="lb-loading">
+            <span class="emoji">⚙️</span>
+            불러오는 중...
+          </div>`;
+        const entries = await getLeaderboard(10);
+        renderLeaderboard(entries);
+      }
+
       onAuthChange((user) => {
+        currentUser = user;
         if (user) {
           loggedOut.style.display = 'none';
           loggedIn.style.display = 'block';
           userName.textContent = user.displayName || '사용자';
           if (user.photoURL) userImg.src = user.photoURL;
+          meName.textContent = user.displayName || '사용자';
+          loginHint.style.display = 'none';
+          // 로그인 시 로컬 최고 기록을 Firestore와 동기화
+          const localBest = getLocalBest();
+          if (localBest > 0) saveProfile(localBest);
         } else {
           loggedOut.style.display = 'block';
           loggedIn.style.display = 'none';
+          meName.textContent = '게스트';
+          loginHint.style.display = 'block';
         }
       });
 
@@ -527,6 +714,7 @@
       document.getElementById('btn-leaderboard-start').addEventListener('click', () => {
         refreshBest();
         leaderboardModal.classList.add('open');
+        loadLeaderboard();
       });
 
       document.getElementById('btn-leaderboard-close').addEventListener('click', () => {
