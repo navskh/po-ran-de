@@ -12,6 +12,7 @@
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
+    "firebase": "^12.12.1",
     "phaser": "^3.80.1"
   },
   "devDependencies": {
