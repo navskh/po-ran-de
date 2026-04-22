@@ -18,6 +18,10 @@ export class TowerUnit extends Phaser.GameObjects.Container {
   cellBuffAttack = 1;
   cellBuffRange = 1;
   cellBuffSpeed = 1;
+  // 영구 업그레이드 (등급별)
+  permAttack = 1;
+  permRange = 1;
+  permSpeed = 1;
   private sprite?: Phaser.GameObjects.Image;
   private nameText!: Phaser.GameObjects.Text;
   private starsText!: Phaser.GameObjects.Text;
@@ -231,6 +235,7 @@ export class TowerUnit extends Phaser.GameObjects.Container {
     this.nameText.setText(newPokemon.ko);
     this.starsText.setText('★'.repeat(this.effectiveStage()));
     this.refreshLevelDisplay();
+    this.scene.events.emit('unitEvolved', this);
   }
 
   private refreshLevelDisplay() {
@@ -249,7 +254,7 @@ export class TowerUnit extends Phaser.GameObjects.Container {
   computeAttack(): number {
     const lvBonus = 1 + (this.level - 1) * 0.18;
     const starBonus = 1 + this.extraStars * 0.4;
-    return Math.floor(this.pokemon.attack * lvBonus * starBonus * this.buffAttack * this.cellBuffAttack);
+    return Math.floor(this.pokemon.attack * lvBonus * starBonus * this.buffAttack * this.cellBuffAttack * this.permAttack);
   }
 
   computeHp(): number {
@@ -259,12 +264,18 @@ export class TowerUnit extends Phaser.GameObjects.Container {
   }
 
   computeRange(): number {
-    return Math.floor(this.pokemon.range * this.cellBuffRange);
+    return Math.floor(this.pokemon.range * this.cellBuffRange * this.permRange);
   }
 
   canAttack(now: number): boolean {
-    const cooldownMs = 1000 / (this.pokemon.attackSpeed * this.buffAttackSpeed * this.cellBuffSpeed);
+    const cooldownMs = 1000 / (this.pokemon.attackSpeed * this.buffAttackSpeed * this.cellBuffSpeed * this.permSpeed);
     return now - this.lastAttackAt >= cooldownMs;
+  }
+
+  setPermUpgrade(atkMul: number, rngMul: number, spdMul: number) {
+    this.permAttack = atkMul;
+    this.permRange = rngMul;
+    this.permSpeed = spdMul;
   }
 
   setBuff(atk: number, hp: number, spd: number) {

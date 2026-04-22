@@ -128,8 +128,9 @@ export class WaveSystem {
   private spawnEnemy(cfg: IWaveConfig) {
     const id = cfg.pool[Math.floor(Math.random() * cfg.pool.length)];
     const pokemon = getPokemon(id);
+    const stageHpMul = this.state.stage === 2 ? 2 : 1;
     const baseHp = 40 + this.state.wave * 12;
-    const hp = Math.floor(baseHp * cfg.hpMult);
+    const hp = Math.floor(baseHp * cfg.hpMult * stageHpMul);
     const speed = ENEMY_BASE_SPEED * cfg.speedMult;
     const enemy = new EnemyPokemon(this.scene, pokemon, this.path, { hp, speed });
     this.enemies.push(enemy);
@@ -139,8 +140,9 @@ export class WaveSystem {
   private spawnBoss(cfg: IWaveConfig) {
     if (cfg.bossId === undefined) return;
     const pokemon = getPokemon(cfg.bossId);
+    const stageHpMul = this.state.stage === 2 ? 2 : 1;
     const baseHp = 60 + this.state.wave * 14;
-    const hp = Math.floor(baseHp * (cfg.bossHpMult ?? 10));
+    const hp = Math.floor(baseHp * (cfg.bossHpMult ?? 10) * stageHpMul);
     const speed = ENEMY_BASE_SPEED * cfg.speedMult;
     const enemy = new EnemyPokemon(this.scene, pokemon, this.path, { hp, speed, isBoss: true });
     this.enemies.push(enemy);
@@ -153,9 +155,9 @@ export class WaveSystem {
       const cfg = getWaveConfig(this.state.wave);
       const hpMult = cfg ? cfg.hpMult : 1;
       const goldMult = 1 + (hpMult - 1) * 0.4;
-      // 보스 골드는 wave 비례: 80 + wave*12
+      const stageGoldMul = this.state.stage === 2 ? 1.5 : 1;
       const baseGold = enemy.isBoss ? (80 + this.state.wave * 12) : ENEMY_KILL_GOLD;
-      this.state.addGold(Math.max(1, Math.floor(baseGold * goldMult)));
+      this.state.addGold(Math.max(1, Math.floor(baseGold * goldMult * stageGoldMul)));
       if (enemy.isBoss) {
         this.scene.events.emit('bossKilled');
       }

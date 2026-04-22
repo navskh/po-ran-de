@@ -438,6 +438,199 @@
         line-height: 1.5;
       }
 
+      /* ===== Upgrade Modal ===== */
+      #upgrade-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 1001;
+        background: rgba(0,0,0,0.82);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+      }
+      #upgrade-modal.open { display: flex; animation: fadeIn 0.2s ease-out; }
+
+      .upgrade-panel {
+        background: linear-gradient(160deg, rgba(170,85,238,0.1), rgba(16,22,48,0.96));
+        border: 1px solid rgba(170,85,238,0.3);
+        border-radius: 24px;
+        padding: 24px 24px 20px;
+        max-width: 480px;
+        width: 100%;
+        max-height: 85vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 24px 70px rgba(0,0,0,0.7), 0 0 80px rgba(170,85,238,0.1);
+      }
+
+      .upgrade-title {
+        color: #FFCB05;
+        font-size: 22px;
+        font-weight: 900;
+        text-align: center;
+        margin-bottom: 14px;
+        letter-spacing: 2px;
+      }
+
+      .up-balance {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 18px;
+        background: linear-gradient(135deg, rgba(255,203,5,0.12), rgba(170,85,238,0.1));
+        border: 1px solid rgba(255,203,5,0.3);
+        border-radius: 12px;
+        margin-bottom: 14px;
+        color: #9FB4DA;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 1px;
+      }
+      .up-balance .up-value {
+        color: #FFCB05;
+        font-size: 22px;
+        font-weight: 900;
+        margin-left: 8px;
+      }
+
+      .up-list {
+        flex: 1;
+        overflow-y: auto;
+        padding-right: 4px;
+        margin-bottom: 14px;
+      }
+      .up-list::-webkit-scrollbar { width: 4px; }
+      .up-list::-webkit-scrollbar-thumb {
+        background: rgba(170,85,238,0.3);
+        border-radius: 2px;
+      }
+
+      .up-group {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-left: 3px solid var(--group-color, #fff);
+        border-radius: 10px;
+        padding: 12px 14px;
+        margin-bottom: 8px;
+      }
+      .up-group-title {
+        color: var(--group-color, #fff);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        margin-bottom: 8px;
+      }
+      .up-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 0;
+      }
+      .up-row + .up-row { border-top: 1px dashed rgba(255,255,255,0.06); }
+      .up-stat-icon { font-size: 16px; width: 22px; text-align: center; }
+      .up-stat-name {
+        color: #c8cce8;
+        font-size: 12px;
+        font-weight: 600;
+        width: 42px;
+      }
+      .up-stat-meta {
+        flex: 1;
+        color: #9FB4DA;
+        font-size: 11px;
+        font-family: monospace;
+      }
+      .up-stat-meta .lv { color: #fff; font-weight: 700; }
+      .up-stat-meta .pct { color: #FFCB05; font-weight: 700; margin-left: 6px; }
+      .up-buy-btn {
+        background: linear-gradient(135deg, #aa55ee, #7a4ac4);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 11px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: transform 0.1s, box-shadow 0.15s, opacity 0.15s;
+        font-family: inherit;
+        min-width: 64px;
+      }
+      .up-buy-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(170,85,238,0.4); }
+      .up-buy-btn.disabled {
+        background: rgba(255,255,255,0.08);
+        color: rgba(255,255,255,0.3);
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+      .up-buy-btn.maxed {
+        background: rgba(255,203,5,0.15);
+        color: #FFCB05;
+        cursor: default;
+      }
+
+      .upgrade-close-btn {
+        width: 100%;
+        padding: 12px;
+        background: rgba(255,255,255,0.08);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .upgrade-close-btn:hover { background: rgba(255,255,255,0.12); }
+
+      /* ===== Stage Selector ===== */
+      .stage-selector {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .stage-btn {
+        flex: 1;
+        padding: 12px;
+        background: rgba(255,255,255,0.04);
+        border: 1.5px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        color: #9FB4DA;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.1s, background 0.15s, border-color 0.15s;
+        font-family: inherit;
+        text-align: center;
+      }
+      .stage-btn.active {
+        background: linear-gradient(135deg, rgba(42,117,187,0.3), rgba(42,117,187,0.1));
+        border-color: #2A75BB;
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(42,117,187,0.25);
+      }
+      .stage-btn.active.s2 {
+        background: linear-gradient(135deg, rgba(255,51,221,0.25), rgba(255,51,221,0.08));
+        border-color: #ff33dd;
+        box-shadow: 0 4px 12px rgba(255,51,221,0.25);
+      }
+      .stage-btn.locked {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .stage-btn .stage-label {
+        font-size: 11px;
+        opacity: 0.7;
+        margin-bottom: 2px;
+        letter-spacing: 1px;
+      }
+      .stage-btn .stage-name {
+        font-size: 14px;
+        font-weight: 800;
+      }
+
       .leaderboard-close-btn {
         width: 100%;
         padding: 13px;
@@ -539,6 +732,23 @@
 
         <div class="start-divider"></div>
 
+        <div class="stage-selector">
+          <button class="stage-btn active" id="stage-1-btn" data-stage="1">
+            <div class="stage-label">STAGE 1</div>
+            <div class="stage-name">⚔️ 칸토 챕터</div>
+          </button>
+          <button class="stage-btn s2" id="stage-2-btn" data-stage="2">
+            <div class="stage-label">STAGE 2</div>
+            <div class="stage-name">🌟 하드 모드</div>
+          </button>
+        </div>
+
+        <button class="btn-leaderboard" id="btn-upgrade-start" style="margin-bottom: 8px;">
+          <span>⬆️</span>
+          <span>업그레이드</span>
+          <span style="margin-left:auto;color:#FFCB05;font-weight:900;" id="btn-up-badge">0 UP</span>
+        </button>
+
         <button class="btn-leaderboard" id="btn-leaderboard-start">
           <span>🏆</span>
           <span>명예의 전당</span>
@@ -583,6 +793,19 @@
       </div>
     </div>
 
+    <!-- Upgrade Modal -->
+    <div id="upgrade-modal">
+      <div class="upgrade-panel">
+        <div class="upgrade-title">⬆️ 업그레이드</div>
+        <div class="up-balance">
+          <span>보유 포인트</span>
+          <span><span class="up-value" id="up-balance">0</span>UP</span>
+        </div>
+        <div class="up-list" id="up-list"></div>
+        <button class="upgrade-close-btn" id="btn-upgrade-close">닫기</button>
+      </div>
+    </div>
+
     <!-- Rotate hint -->
     <div id="rotate-hint" role="alert">
       <div class="icon">📱</div>
@@ -595,6 +818,12 @@
     <script type="module">
       import { signInWithGoogle, signOut, onAuthChange, auth } from '/src/lib/firebase.ts';
       import { getLeaderboard, saveProfile } from '/src/lib/firestore.ts';
+      import {
+        UPGRADE_MAX_LEVEL, UPGRADE_BONUS_PER_LEVEL,
+        UPGRADE_STAT_LABELS, UPGRADE_STAT_ICONS,
+        RARITY_UPGRADE_LABELS, RARITY_UPGRADE_COLORS,
+        nextUpgradeCost,
+      } from '/src/data/upgrades.ts';
 
       const overlay = document.getElementById('start-overlay');
       const loggedOut = document.getElementById('start-logged-out');
@@ -609,10 +838,61 @@
       const lbList = document.getElementById('lb-list');
 
       let currentUser = null;
+      let selectedStage = 1;
 
       function getLocalBest() {
         return parseInt(localStorage.getItem('porande-best-wave') || '0', 10);
       }
+
+      function getUP() {
+        return parseInt(localStorage.getItem('porande-up') || '0', 10);
+      }
+      function setUP(v) {
+        localStorage.setItem('porande-up', String(v));
+      }
+      function getUpgrades() {
+        try { return JSON.parse(localStorage.getItem('porande-upgrades') || '{}'); }
+        catch { return {}; }
+      }
+      function setUpgrades(u) {
+        localStorage.setItem('porande-upgrades', JSON.stringify(u));
+      }
+      function isStage1Cleared() {
+        return localStorage.getItem('porande-stage1-cleared') === '1';
+      }
+
+      function refreshUpBadge() {
+        document.getElementById('btn-up-badge').textContent = `${getUP()} UP`;
+      }
+      refreshUpBadge();
+
+      function refreshStageButtons() {
+        const cleared = isStage1Cleared();
+        const s1 = document.getElementById('stage-1-btn');
+        const s2 = document.getElementById('stage-2-btn');
+        if (cleared) {
+          s2.classList.remove('locked');
+        } else {
+          s2.classList.add('locked');
+          // 스테이지 2의 이름을 잠금 상태로 표기
+          s2.querySelector('.stage-name').innerHTML = '🔒 잠김';
+        }
+        s1.classList.toggle('active', selectedStage === 1);
+        s2.classList.toggle('active', selectedStage === 2);
+      }
+      refreshStageButtons();
+
+      document.getElementById('stage-1-btn').addEventListener('click', () => {
+        selectedStage = 1;
+        refreshStageButtons();
+      });
+      document.getElementById('stage-2-btn').addEventListener('click', () => {
+        if (!isStage1Cleared()) {
+          return; // 잠김
+        }
+        selectedStage = 2;
+        refreshStageButtons();
+      });
 
       function refreshBest() {
         const best = getLocalBest();
@@ -699,14 +979,6 @@
         await signInWithGoogle();
       });
 
-      document.getElementById('btn-guest-start').addEventListener('click', () => {
-        overlay.classList.add('hidden');
-      });
-
-      document.getElementById('btn-play-start').addEventListener('click', () => {
-        overlay.classList.add('hidden');
-      });
-
       document.getElementById('btn-logout-start').addEventListener('click', async () => {
         await signOut();
       });
@@ -726,6 +998,95 @@
           leaderboardModal.classList.remove('open');
         }
       });
+
+      // ===== Upgrade Modal =====
+      const upgradeModal = document.getElementById('upgrade-modal');
+      const upBalanceEl = document.getElementById('up-balance');
+      const upListEl = document.getElementById('up-list');
+      const STATS = ['attack', 'range', 'speed'];
+
+      function renderUpgrades() {
+        const up = getUP();
+        const upgrades = getUpgrades();
+        upBalanceEl.textContent = up;
+        const html = [1, 2, 3, 4, 5, 6].map((r) => {
+          const color = RARITY_UPGRADE_COLORS[r];
+          const label = RARITY_UPGRADE_LABELS[r];
+          const rows = STATS.map((stat) => {
+            const key = `${r}_${stat}`;
+            const lv = upgrades[key] ?? 0;
+            const pct = Math.round(lv * UPGRADE_BONUS_PER_LEVEL * 100);
+            const cost = nextUpgradeCost(lv);
+            const isMax = lv >= UPGRADE_MAX_LEVEL;
+            const canBuy = !isMax && up >= cost;
+            const btnHtml = isMax
+              ? `<button class="up-buy-btn maxed" disabled>MAX</button>`
+              : `<button class="up-buy-btn ${canBuy ? '' : 'disabled'}" data-rarity="${r}" data-stat="${stat}" ${canBuy ? '' : 'disabled'}>${cost} UP</button>`;
+            return `
+              <div class="up-row">
+                <span class="up-stat-icon">${UPGRADE_STAT_ICONS[stat]}</span>
+                <span class="up-stat-name">${UPGRADE_STAT_LABELS[stat]}</span>
+                <span class="up-stat-meta">
+                  <span class="lv">Lv ${lv}/${UPGRADE_MAX_LEVEL}</span>
+                  <span class="pct">+${pct}%</span>
+                </span>
+                ${btnHtml}
+              </div>`;
+          }).join('');
+          return `
+            <div class="up-group" style="--group-color: ${color}">
+              <div class="up-group-title">${label}</div>
+              ${rows}
+            </div>`;
+        }).join('');
+        upListEl.innerHTML = html;
+
+        // Bind buy buttons
+        upListEl.querySelectorAll('.up-buy-btn[data-rarity]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const r = parseInt(btn.getAttribute('data-rarity'), 10);
+            const stat = btn.getAttribute('data-stat');
+            buyUpgrade(r, stat);
+          });
+        });
+      }
+
+      function buyUpgrade(rarity, stat) {
+        const up = getUP();
+        const upgrades = getUpgrades();
+        const key = `${rarity}_${stat}`;
+        const lv = upgrades[key] ?? 0;
+        if (lv >= UPGRADE_MAX_LEVEL) return;
+        const cost = nextUpgradeCost(lv);
+        if (up < cost) return;
+        setUP(up - cost);
+        upgrades[key] = lv + 1;
+        setUpgrades(upgrades);
+        refreshUpBadge();
+        renderUpgrades();
+      }
+
+      document.getElementById('btn-upgrade-start').addEventListener('click', () => {
+        renderUpgrades();
+        upgradeModal.classList.add('open');
+      });
+      document.getElementById('btn-upgrade-close').addEventListener('click', () => {
+        upgradeModal.classList.remove('open');
+      });
+      upgradeModal.addEventListener('click', (e) => {
+        if (e.target === upgradeModal) upgradeModal.classList.remove('open');
+      });
+
+      // 게임 시작 시 스테이지 정보 전달
+      function startGame() {
+        localStorage.setItem('porande-stage', String(selectedStage));
+        overlay.classList.add('hidden');
+      }
+      document.getElementById('btn-guest-start').addEventListener('click', startGame);
+      document.getElementById('btn-play-start').addEventListener('click', startGame);
+
+      // UP 획득 폴링 (게임 중 UP 쌓이면 badge 업데이트)
+      setInterval(() => { refreshUpBadge(); }, 2000);
     </script>
   </body>
 </html>

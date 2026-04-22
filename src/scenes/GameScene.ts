@@ -24,6 +24,7 @@ import { Hud } from '../ui/Hud';
 import { ControlPanel } from '../ui/ControlPanel';
 import { ACHIEVEMENTS } from '../data/achievements';
 import { saveProfile } from '../lib/firestore';
+import { getUpgradeMultiplier } from '../data/upgrades';
 
 const TRASH_X = 200;   // 그리드 좌측 인접 (GRID_X 288 - TRASH_W/2 - 여유)
 const TRASH_Y = 360;
@@ -66,11 +67,13 @@ export class GameScene extends Phaser.Scene {
   create() {
     this.enemyPath = this.buildPath();
 
+    const selectedStage = (parseInt(localStorage.getItem('porande-stage') || '1', 10) === 2 && GameState.isStage1Cleared()) ? 2 : 1;
     this.state = new GameState({
       gold: STARTING_GOLD,
       lives: STARTING_LIVES,
       maxWave: TOTAL_WAVE_COUNT,
       unlockedCols: INITIAL_UNLOCKED_COLS,
+      stage: selectedStage,
     });
     this.grid = new GridSystem();
     this.mergeSystem = new MergeSystem(this.grid);
@@ -102,6 +105,11 @@ export class GameScene extends Phaser.Scene {
     this.state.on('waveEnd', (w: number) => {
       this.refreshNextWavePreview();
       this.achievements.onWaveEnd(w, this.state.lives);
+      // UP 보상 (스테이지 2는 1.5배)
+      const stageMul = this.state.stage === 2 ? 1.5 : 1;
+      const baseUp = 1;
+      const up = Math.max(1, Math.floor(baseUp * stageMul));
+      this.state.earnUP(up);
     });
     this.state.on('gameOver', () => this.endGame(false));
     this.state.on('milestone50', (w: number) => {
@@ -110,6 +118,7 @@ export class GameScene extends Phaser.Scene {
     this.state.on('bestWaveUpdated', (best: number) => {
       this.flashMessage(`⭐ 최고 기록 갱신! 웨이브 ${best}`, '#66ddff');
       saveProfile(best);
+      this.state.earnUP(10);
     });
     this.state.on('colsChanged', (n: number) => {
       this.onColsChanged(n);
@@ -118,7 +127,12 @@ export class GameScene extends Phaser.Scene {
     this.state.on('goldChanged', (g: number) => this.achievements.onGoldChange(g));
     this.state.on('dexAdded', () => this.achievements.onDexAdded());
     this.state.on('achievementUnlocked', (id: string) => this.showAchievementToast(id));
-    this.events.on('bossKilled', () => this.achievements.onBossKill());
+    this.events.on('bossKilled', () => {
+      this.achievements.onBossKill();
+      const stageMul = this.state.stage === 2 ? 1.5 : 1;
+      this.state.earnUP(Math.floor(3 * stageMul));
+    });
+    this.events.on('unitEvolved', (unit: TowerUnit) => this.applyUpgradesToUnit(unit));
 
     this.input.dragDistanceThreshold = 8;
     this.input.mouse?.disableContextMenu();
@@ -521,6 +535,7 @@ export class GameScene extends Phaser.Scene {
     const cell = this.grid.findEmptyCell()!;
     const { x, y } = cellCenter(cell.col, cell.row);
     const unit = new TowerUnit(this, x, y, pokemon, cell.col, cell.row);
+    this.applyUpgradesToUnit(unit);
     this.grid.place(unit, cell.col, cell.row);
 
     const finalScale = cellScale(cell.col);
@@ -537,6 +552,14 @@ export class GameScene extends Phaser.Scene {
     if (!this.state.startWave()) {
       this.flashMessage('웨이브 시작 불가', '#ff7b8c');
     }
+  }
+
+  private applyUpgradesToUnit(unit: TowerUnit) {
+    const r = unit.pokemon.rarity;
+    const atkMul = getUpgradeMultiplier(this.state.upgrades, r, 'attack');
+    const rngMul = getUpgradeMultiplier(this.state.upgrades, r, 'range');
+    const spdMul = getUpgradeMultiplier(this.state.upgrades, r, 'speed');
+    unit.setPermUpgrade(atkMul, rngMul, spdMul);
   }
 
   private playLevelUpEffect(unit: TowerUnit) {
