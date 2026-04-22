@@ -1540,111 +1540,197 @@ export class GameScene extends Phaser.Scene {
     const cy = (HUD_HEIGHT + GAME_HEIGHT - CONTROL_HEIGHT) / 2;
     const w = 980;
     const h = 540;
+    const res = Math.max(2, Math.floor(window.devicePixelRatio || 1));
 
     const container = this.add.container(0, 0).setDepth(2500);
     this.recipesContainer = container;
 
-    const overlay = this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.78)
+    const overlay = this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.82)
       .setOrigin(0, 0)
       .setInteractive();
     overlay.on('pointerdown', () => this.closeRecipes());
     container.add(overlay);
 
-    const card = this.add.rectangle(cx, cy, w, h, 0x1a1c2f, 1)
-      .setStrokeStyle(2, 0xffd34d)
-      .setInteractive();
+    // 둥근 메인 카드
+    const cardGfx = this.add.graphics();
+    cardGfx.fillStyle(0x0f1224, 1);
+    cardGfx.fillRoundedRect(cx - w / 2, cy - h / 2, w, h, 18);
+    cardGfx.lineStyle(2, 0xffcb05, 0.5);
+    cardGfx.strokeRoundedRect(cx - w / 2, cy - h / 2, w, h, 18);
+    const card = this.add.rectangle(cx, cy, w, h, 0x000000, 0).setInteractive();
     card.on('pointerdown', (p: Phaser.Input.Pointer) => p.event.stopPropagation());
-    container.add(card);
+    container.add([cardGfx, card]);
 
     const unlocked = this.state.achievements;
     const total = ACHIEVEMENTS.length;
     const got = unlocked.size;
+    const pct = Math.floor((got / total) * 100);
 
-    container.add(this.add.text(cx, cy - h / 2 + 26, '업적', {
-      fontFamily: 'sans-serif', fontSize: '20px', color: '#ffd34d',
-    }).setOrigin(0.5));
-    container.add(this.add.text(cx, cy - h / 2 + 52, `${got} / ${total}  (${Math.floor(got / total * 100)}%)`, {
-      fontFamily: 'monospace', fontSize: '13px', color: '#ddddee',
-    }).setOrigin(0.5));
+    // 타이틀
+    container.add(this.add.text(cx, cy - h / 2 + 30, '🏆  업 적', {
+      fontFamily: 'sans-serif', fontSize: '22px', color: '#ffcb05', fontStyle: 'bold',
+    }).setOrigin(0.5).setResolution(res));
 
-    // 3열 x N행 그리드
+    // 프로그레스 바
+    const barX = cx - 200;
+    const barY = cy - h / 2 + 62;
+    const barW = 400;
+    const barH = 16;
+    const barBg = this.add.graphics();
+    barBg.fillStyle(0x1a1d30, 1);
+    barBg.fillRoundedRect(barX, barY, barW, barH, barH / 2);
+    barBg.lineStyle(1, 0x2a2d45, 1);
+    barBg.strokeRoundedRect(barX, barY, barW, barH, barH / 2);
+    container.add(barBg);
+
+    if (got > 0) {
+      const barFill = this.add.graphics();
+      const fillW = Math.max(barH, (barW - 2) * (got / total));
+      barFill.fillGradientStyle(0xffcb05, 0xffe357, 0xf0a800, 0xffcb05, 1);
+      barFill.fillRoundedRect(barX + 1, barY + 1, fillW, barH - 2, (barH - 2) / 2);
+      container.add(barFill);
+    }
+
+    container.add(this.add.text(cx, barY + barH / 2, `${got} / ${total}  ·  ${pct}%`, {
+      fontFamily: 'sans-serif', fontSize: '11px', color: '#ffffff', fontStyle: 'bold',
+    }).setOrigin(0.5).setResolution(res));
+
+    // 3열 그리드
     const cols = 3;
-    const colWidth = (w - 40) / cols;
-    const rowHeight = 58;
-    const startY = cy - h / 2 + 82;
-    const startX = cx - w / 2 + 20;
+    const gap = 8;
+    const gridTop = cy - h / 2 + 92;
+    const gridBottom = cy + h / 2 - 48;
+    const gridH = gridBottom - gridTop;
+    const rows = Math.ceil(ACHIEVEMENTS.length / cols);
+    const cardH = Math.floor((gridH - (rows - 1) * gap) / rows);
+    const innerW = w - 28;
+    const cardW = Math.floor((innerW - (cols - 1) * gap) / cols);
+    const gridLeft = cx - w / 2 + 14;
 
     for (let i = 0; i < ACHIEVEMENTS.length; i++) {
       const ach = ACHIEVEMENTS[i];
       const col = i % cols;
       const row = Math.floor(i / cols);
-      const baseX = startX + col * colWidth;
-      const yPos = startY + row * rowHeight;
+      const x = gridLeft + col * (cardW + gap);
+      const y = gridTop + row * (cardH + gap);
       const got_ = unlocked.has(ach.id);
 
-      // 행 배경
-      const bg = this.add.rectangle(baseX + colWidth / 2 - 4, yPos + 24, colWidth - 14, 52,
-        got_ ? 0x2a2a1a : 0x15161f, got_ ? 0.8 : 0.5)
-        .setStrokeStyle(1, got_ ? 0xffd34d : 0x333344, 0.8);
-      container.add(bg);
+      // 카드 배경 (둥근)
+      const cg = this.add.graphics();
+      if (got_) {
+        cg.fillStyle(0x2a2510, 1);
+        cg.fillRoundedRect(x, y, cardW, cardH, 10);
+        cg.lineStyle(1.5, 0xffcb05, 0.75);
+        cg.strokeRoundedRect(x, y, cardW, cardH, 10);
+        // 글로우
+        cg.fillStyle(0xffcb05, 0.04);
+        cg.fillRoundedRect(x + 2, y + 2, cardW - 4, cardH - 4, 8);
+      } else {
+        cg.fillStyle(0x14162a, 1);
+        cg.fillRoundedRect(x, y, cardW, cardH, 10);
+        cg.lineStyle(1, 0x2a2d45, 1);
+        cg.strokeRoundedRect(x, y, cardW, cardH, 10);
+      }
+      container.add(cg);
+
+      // 아이콘 배경 원
+      const iconCX = x + 26;
+      const iconCY = y + cardH / 2;
+      const iconBg = this.add.graphics();
+      if (got_) {
+        iconBg.fillStyle(0xffcb05, 0.18);
+        iconBg.fillCircle(iconCX, iconCY, 18);
+      } else {
+        iconBg.fillStyle(0x1a1d35, 1);
+        iconBg.fillCircle(iconCX, iconCY, 18);
+      }
+      container.add(iconBg);
 
       // 아이콘
-      container.add(this.add.text(baseX + 24, yPos + 24, ach.icon, {
-        fontFamily: 'sans-serif', fontSize: '22px',
-      }).setOrigin(0.5));
+      const icon = this.add.text(iconCX, iconCY, ach.icon, {
+        fontFamily: 'sans-serif', fontSize: '20px',
+      }).setOrigin(0.5).setResolution(res);
+      if (!got_) icon.setAlpha(0.4);
+      container.add(icon);
 
       // 이름
-      container.add(this.add.text(baseX + 48, yPos + 12, ach.name, {
+      const nameText = this.add.text(x + 52, y + cardH / 2 - 10, ach.name, {
         fontFamily: 'sans-serif', fontSize: '13px',
-        color: got_ ? '#ffd34d' : '#aab0d4', fontStyle: got_ ? 'bold' : 'normal',
-      }).setOrigin(0, 0.5));
+        color: got_ ? '#ffd760' : '#8a8fad',
+        fontStyle: 'bold',
+      }).setOrigin(0, 0.5).setResolution(res);
+      container.add(nameText);
 
       // 설명
-      container.add(this.add.text(baseX + 48, yPos + 30, ach.description, {
-        fontFamily: 'monospace', fontSize: '10px',
-        color: got_ ? '#ddddee' : '#66688a',
-      }).setOrigin(0, 0.5));
+      const descText = this.add.text(x + 52, y + cardH / 2 + 9, ach.description, {
+        fontFamily: 'sans-serif', fontSize: '10px',
+        color: got_ ? '#c8cce8' : '#5a5d75',
+      }).setOrigin(0, 0.5).setResolution(res);
+      container.add(descText);
+
+      // 달성/잠금 표시
+      if (got_) {
+        const checkBg = this.add.graphics();
+        checkBg.fillStyle(0x4ade80, 0.18);
+        checkBg.fillCircle(x + cardW - 14, y + 13, 8);
+        container.add(checkBg);
+        const check = this.add.text(x + cardW - 14, y + 13, '✓', {
+          fontFamily: 'sans-serif', fontSize: '11px',
+          color: '#4ade80', fontStyle: 'bold',
+        }).setOrigin(0.5).setResolution(res);
+        container.add(check);
+      }
     }
 
     // pager
-    const pagerY = cy + h / 2 - 26;
-    const prevBg = this.add.rectangle(cx - 80, pagerY, 32, 28, 0x2a2f55)
-      .setStrokeStyle(2, 0x6680ff)
-      .setInteractive({ useHandCursor: true });
-    prevBg.on('pointerdown', (p: Phaser.Input.Pointer) => {
+    const pagerY = cy + h / 2 - 24;
+    const prevGfx = this.add.graphics();
+    prevGfx.fillStyle(0x1f2340, 1);
+    prevGfx.fillRoundedRect(cx - 96, pagerY - 14, 32, 28, 6);
+    prevGfx.lineStyle(1.5, 0x6680ff, 0.7);
+    prevGfx.strokeRoundedRect(cx - 96, pagerY - 14, 32, 28, 6);
+    const prevHit = this.add.rectangle(cx - 80, pagerY, 32, 28, 0x000000, 0).setInteractive({ useHandCursor: true });
+    prevHit.on('pointerdown', (p: Phaser.Input.Pointer) => {
       p.event.stopPropagation();
       this.shiftRecipesPage(-1);
     });
     const prevText = this.add.text(cx - 80, pagerY, '‹', {
-      fontFamily: 'monospace', fontSize: '18px', color: '#aab0ff',
-    }).setOrigin(0.5);
+      fontFamily: 'sans-serif', fontSize: '18px', color: '#aab0ff', fontStyle: 'bold',
+    }).setOrigin(0.5).setResolution(res);
 
     const pageText = this.add.text(cx, pagerY, `${this.recipesPageIndex + 1} / ${RECIPE_PAGES.length + 4}`, {
-      fontFamily: 'monospace', fontSize: '13px', color: '#ddddee',
-    }).setOrigin(0.5);
+      fontFamily: 'sans-serif', fontSize: '12px', color: '#ddddee', fontStyle: 'bold',
+    }).setOrigin(0.5).setResolution(res);
 
-    const nextBg = this.add.rectangle(cx + 80, pagerY, 32, 28, 0x2a2f55)
-      .setStrokeStyle(2, 0x6680ff)
-      .setInteractive({ useHandCursor: true });
-    nextBg.on('pointerdown', (p: Phaser.Input.Pointer) => {
+    const nextGfx = this.add.graphics();
+    nextGfx.fillStyle(0x1f2340, 1);
+    nextGfx.fillRoundedRect(cx + 64, pagerY - 14, 32, 28, 6);
+    nextGfx.lineStyle(1.5, 0x6680ff, 0.7);
+    nextGfx.strokeRoundedRect(cx + 64, pagerY - 14, 32, 28, 6);
+    const nextHit = this.add.rectangle(cx + 80, pagerY, 32, 28, 0x000000, 0).setInteractive({ useHandCursor: true });
+    nextHit.on('pointerdown', (p: Phaser.Input.Pointer) => {
       p.event.stopPropagation();
       this.shiftRecipesPage(1);
     });
     const nextText = this.add.text(cx + 80, pagerY, '›', {
-      fontFamily: 'monospace', fontSize: '18px', color: '#aab0ff',
-    }).setOrigin(0.5);
-    container.add([prevBg, prevText, pageText, nextBg, nextText]);
+      fontFamily: 'sans-serif', fontSize: '18px', color: '#aab0ff', fontStyle: 'bold',
+    }).setOrigin(0.5).setResolution(res);
+    container.add([prevGfx, prevHit, prevText, pageText, nextGfx, nextHit, nextText]);
 
-    const closeBg = this.add.rectangle(cx + w / 2 - 22, cy - h / 2 + 22, 32, 32, 0x4a1a1a, 1)
-      .setStrokeStyle(2, 0xff5577)
-      .setInteractive({ useHandCursor: true });
-    closeBg.on('pointerdown', (p: Phaser.Input.Pointer) => {
+    // 닫기
+    const closeGfx = this.add.graphics();
+    closeGfx.fillStyle(0x3a1420, 1);
+    closeGfx.fillRoundedRect(cx + w / 2 - 40, cy - h / 2 + 8, 32, 32, 8);
+    closeGfx.lineStyle(1.5, 0xff5577, 0.7);
+    closeGfx.strokeRoundedRect(cx + w / 2 - 40, cy - h / 2 + 8, 32, 32, 8);
+    const closeHit = this.add.rectangle(cx + w / 2 - 24, cy - h / 2 + 24, 32, 32, 0x000000, 0).setInteractive({ useHandCursor: true });
+    closeHit.on('pointerdown', (p: Phaser.Input.Pointer) => {
       p.event.stopPropagation();
       this.closeRecipes();
     });
-    const closeText = this.add.text(cx + w / 2 - 22, cy - h / 2 + 22, 'X', {
-      fontFamily: 'monospace', fontSize: '16px', color: '#ff5577',
-    }).setOrigin(0.5);
-    container.add([closeBg, closeText]);
+    const closeText = this.add.text(cx + w / 2 - 24, cy - h / 2 + 24, '✕', {
+      fontFamily: 'sans-serif', fontSize: '15px', color: '#ff5577', fontStyle: 'bold',
+    }).setOrigin(0.5).setResolution(res);
+    container.add([closeGfx, closeHit, closeText]);
   }
 }

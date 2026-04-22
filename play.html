@@ -24,7 +24,7 @@
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         overflow: hidden;
         -webkit-tap-highlight-color: transparent;
-        touch-action: none; /* 스크롤/줌 방지, 드래그는 Phaser가 처리 */
+        touch-action: none;
         overscroll-behavior: contain;
       }
       @supports (height: 100dvh) {
@@ -40,10 +40,7 @@
         border-radius: 12px;
         overflow: hidden;
       }
-      #game-container canvas {
-        display: block;
-      }
-      /* 모바일에선 장식 제거 + 여백 최소화 */
+      #game-container canvas { display: block; }
       @media (max-width: 900px) {
         #game-container {
           box-shadow: none;
@@ -54,68 +51,305 @@
         }
       }
 
-      /* 로그인 UI (우측 상단) */
-      #auth-ui {
+      /* ===== Start Overlay ===== */
+      #start-overlay {
         position: fixed;
-        top: 12px;
-        right: 12px;
-        z-index: 100;
+        inset: 0;
+        z-index: 1000;
+        background:
+          radial-gradient(ellipse at top, rgba(42,117,187,0.25), transparent 60%),
+          radial-gradient(ellipse at bottom, rgba(255,203,5,0.15), transparent 60%),
+          linear-gradient(135deg, #0b1a38 0%, #050810 100%);
         display: flex;
         align-items: center;
-        gap: 8px;
+        justify-content: center;
+        padding: 20px;
+        animation: fadeIn 0.3s ease-out;
       }
-      #auth-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(10, 26, 56, 0.85);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 10px;
-        color: #ffffff;
-        padding: 8px 12px;
+      #start-overlay.hidden { display: none; }
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      .start-panel {
+        background: linear-gradient(160deg, rgba(42,117,187,0.18), rgba(16,22,48,0.92));
+        border: 1px solid rgba(255, 203, 5, 0.28);
+        border-radius: 24px;
+        padding: 36px 32px;
+        max-width: 420px;
+        width: 100%;
+        text-align: center;
+        box-shadow:
+          0 24px 70px rgba(0, 0, 0, 0.7),
+          0 0 0 1px rgba(255,203,5,0.08) inset,
+          0 0 80px rgba(255,203,5,0.08);
+        position: relative;
+        overflow: hidden;
+      }
+      .start-panel::before {
+        content: '';
+        position: absolute;
+        top: -50%; left: -50%;
+        width: 200%; height: 200%;
+        background: radial-gradient(circle, rgba(255,203,5,0.06) 0%, transparent 60%);
+        animation: shimmer 6s ease-in-out infinite;
+        pointer-events: none;
+      }
+      @keyframes shimmer {
+        0%, 100% { transform: translate(-10%, -10%); }
+        50%      { transform: translate(10%, 10%); }
+      }
+
+      .start-logo {
+        font-size: 48px;
+        margin-bottom: 4px;
+        filter: drop-shadow(0 4px 20px rgba(255,203,5,0.4));
+      }
+      .start-title {
+        color: #FFCB05;
+        font-size: 38px;
+        font-weight: 900;
+        letter-spacing: 6px;
+        margin-bottom: 6px;
+        text-shadow: 0 2px 20px rgba(255,203,5,0.4);
+      }
+      .start-subtitle {
+        color: #9FB4DA;
         font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        backdrop-filter: blur(6px);
-        -webkit-backdrop-filter: blur(6px);
-        transition: background 0.15s, transform 0.15s;
+        margin-bottom: 28px;
+        letter-spacing: 2px;
+        font-weight: 500;
       }
-      #auth-btn:hover { background: rgba(42, 117, 187, 0.7); transform: translateY(-1px); }
-      #auth-btn:active { transform: translateY(0); }
-      #auth-btn img { width: 18px; height: 18px; border-radius: 50%; }
-      #auth-btn .g-icon {
-        width: 16px; height: 16px; display: inline-block;
+
+      .start-panel button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        padding: 14px 18px;
+        margin-bottom: 10px;
+        border: none;
+        border-radius: 14px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+        font-family: inherit;
+        position: relative;
+        z-index: 1;
+      }
+      .start-panel button:hover { transform: translateY(-2px); }
+      .start-panel button:active { transform: translateY(0); }
+
+      .btn-google {
+        background: #fff;
+        color: #1f1f1f;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      }
+      .btn-google:hover { box-shadow: 0 8px 24px rgba(255,255,255,0.2); }
+
+      .btn-guest {
+        background: linear-gradient(135deg, #2A75BB, #1e5a94);
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(42,117,187,0.35);
+      }
+      .btn-guest:hover { box-shadow: 0 8px 24px rgba(42,117,187,0.55); }
+
+      .btn-play {
+        background: linear-gradient(135deg, #FFCB05, #f0b800);
+        color: #1a1a1a;
+        box-shadow: 0 4px 14px rgba(255,203,5,0.35);
+        font-size: 16px;
+      }
+      .btn-play:hover { box-shadow: 0 8px 24px rgba(255,203,5,0.5); }
+
+      .btn-leaderboard {
+        background: rgba(255, 203, 5, 0.08);
+        color: #FFCB05;
+        border: 1px solid rgba(255, 203, 5, 0.35) !important;
+      }
+      .btn-leaderboard:hover {
+        background: rgba(255, 203, 5, 0.15);
+        box-shadow: 0 4px 16px rgba(255,203,5,0.2);
+      }
+
+      .btn-logout {
+        background: rgba(238, 21, 21, 0.08);
+        color: #ff7e7e;
+        border: 1px solid rgba(238, 21, 21, 0.3) !important;
+      }
+      .btn-logout:hover { background: rgba(238, 21, 21, 0.15); }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 18px;
+        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,0.08);
+        text-align: left;
+      }
+      .user-info img {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 2px solid rgba(255,203,5,0.5);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      }
+      .user-info .name {
+        color: #fff;
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+      .user-info .status {
+        color: #9FB4DA;
+        font-size: 11px;
+        margin-top: 3px;
+        letter-spacing: 0.5px;
+      }
+
+      .start-divider {
+        margin: 16px 0 12px;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+      }
+
+      .best-record {
+        margin-top: 14px;
+        padding: 14px 18px;
+        background: linear-gradient(135deg, rgba(255,203,5,0.08), rgba(42,117,187,0.08));
+        border: 1px solid rgba(255,203,5,0.15);
+        border-radius: 12px;
+        color: #9FB4DA;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .best-record .wave {
+        color: #FFCB05;
+        font-weight: 900;
+        font-size: 18px;
+      }
+
+      .g-icon {
+        width: 18px; height: 18px; display: inline-block;
         background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><path fill='%23FFC107' d='M43.6 20.1H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z'/><path fill='%23FF3D00' d='M6.3 14.7l6.6 4.8C14.7 15.9 19 13 24 13c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16 4 9.2 8.8 6.3 14.7z'/><path fill='%234CAF50' d='M24 44c5.5 0 10.4-2.1 14.1-5.5l-6.5-5.5c-2 1.5-4.6 2.5-7.6 2.5-5.2 0-9.6-3.3-11.2-8L6.3 33.4C9.2 39.3 15.9 44 24 44z'/><path fill='%231976D2' d='M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4 5.5l6.5 5.5C41.6 34.8 44 29.8 44 24c0-1.3-.1-2.6-.4-3.9z'/></svg>");
         background-repeat: no-repeat;
         background-size: contain;
       }
-      #auth-menu {
+
+      /* ===== Leaderboard Modal ===== */
+      #leaderboard-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 1001;
+        background: rgba(0,0,0,0.8);
         display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+      }
+      #leaderboard-modal.open { display: flex; animation: fadeIn 0.2s ease-out; }
+
+      .leaderboard-panel {
+        background: linear-gradient(160deg, rgba(42,117,187,0.15), rgba(16,22,48,0.95));
+        border: 1px solid rgba(255,203,5,0.3);
+        border-radius: 24px;
+        padding: 28px 28px 24px;
+        max-width: 420px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 24px 70px rgba(0,0,0,0.7), 0 0 80px rgba(255,203,5,0.1);
+      }
+
+      .leaderboard-title {
+        color: #FFCB05;
+        font-size: 24px;
+        font-weight: 900;
+        margin-bottom: 24px;
+        letter-spacing: 2px;
+      }
+
+      .local-best-card {
+        padding: 28px 20px;
+        background: linear-gradient(135deg, rgba(255,203,5,0.12), rgba(42,117,187,0.12));
+        border: 2px solid rgba(255,203,5,0.35);
+        border-radius: 18px;
+        margin-bottom: 16px;
+        position: relative;
+        overflow: hidden;
+      }
+      .local-best-card::before {
+        content: '👑';
         position: absolute;
-        top: 48px;
-        right: 0;
-        background: #1a1c2f;
+        top: 8px;
+        right: 12px;
+        font-size: 20px;
+        opacity: 0.4;
+      }
+      .local-best-card .label {
+        color: #9FB4DA;
+        font-size: 12px;
+        letter-spacing: 2px;
+        margin-bottom: 10px;
+        font-weight: 600;
+      }
+      .local-best-card .wave-num {
+        color: #FFCB05;
+        font-size: 56px;
+        font-weight: 900;
+        line-height: 1;
+        text-shadow: 0 4px 20px rgba(255,203,5,0.4);
+      }
+      .local-best-card .wave-label {
+        color: #FFCB05;
+        font-size: 14px;
+        font-weight: 800;
+        margin-top: 8px;
+        letter-spacing: 3px;
+      }
+
+      .coming-soon {
+        padding: 16px;
+        background: rgba(255,255,255,0.04);
+        border: 1px dashed rgba(255,255,255,0.15);
+        border-radius: 12px;
+        color: #9FB4DA;
+        font-size: 12px;
+        margin-bottom: 18px;
+        line-height: 1.6;
+      }
+      .coming-soon .emoji {
+        font-size: 18px;
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .leaderboard-close-btn {
+        width: 100%;
+        padding: 13px;
+        background: rgba(255,255,255,0.08);
+        color: #fff;
         border: 1px solid rgba(255,255,255,0.1);
         border-radius: 12px;
-        padding: 6px;
-        min-width: 160px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      }
-      #auth-menu.open { display: block; }
-      #auth-menu button {
-        width: 100%;
-        background: transparent;
-        border: none;
-        color: #ffffff;
-        padding: 10px 12px;
-        text-align: left;
-        font-size: 13px;
-        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
         cursor: pointer;
+        font-family: inherit;
+        transition: background 0.15s;
       }
-      #auth-menu button:hover { background: rgba(255,255,255,0.08); }
+      .leaderboard-close-btn:hover { background: rgba(255,255,255,0.12); }
 
-      /* 세로 모드: 가로 회전 안내 */
+      /* Rotate hint */
       #rotate-hint {
         display: none;
         position: fixed;
@@ -151,71 +385,157 @@
       @media (orientation: portrait) and (max-width: 900px) {
         #rotate-hint { display: flex; }
       }
+
+      /* Responsive */
+      @media (max-width: 480px) {
+        .start-panel { padding: 28px 22px; }
+        .start-title { font-size: 32px; letter-spacing: 4px; }
+        .start-logo { font-size: 40px; }
+        .local-best-card .wave-num { font-size: 48px; }
+      }
     </style>
   </head>
   <body>
     <div id="game-container"></div>
-    <div id="auth-ui">
-      <button id="auth-btn" type="button" aria-label="로그인">
-        <span class="auth-label">
-          <span class="g-icon"></span>
-          <span class="label-text">로그인</span>
-        </span>
-      </button>
-      <div id="auth-menu" role="menu">
-        <button type="button" id="logout-btn">로그아웃</button>
+
+    <!-- Start Overlay -->
+    <div id="start-overlay">
+      <div class="start-panel">
+        <div class="start-logo">⚔️</div>
+        <div class="start-title">포랜디</div>
+        <div class="start-subtitle">포켓몬 랜덤 디펜스</div>
+
+        <!-- Logged-out -->
+        <div id="start-logged-out">
+          <button class="btn-google" id="btn-google-start">
+            <span class="g-icon"></span>
+            <span>Google로 로그인</span>
+          </button>
+          <button class="btn-guest" id="btn-guest-start">
+            <span>🎮</span>
+            <span>게스트로 시작</span>
+          </button>
+        </div>
+
+        <!-- Logged-in -->
+        <div id="start-logged-in" style="display:none;">
+          <div class="user-info">
+            <img id="start-user-img" src="" alt="avatar" />
+            <div>
+              <div class="name" id="start-user-name"></div>
+              <div class="status">Google 로그인됨</div>
+            </div>
+          </div>
+          <button class="btn-play" id="btn-play-start">
+            <span>🎮</span>
+            <span>게임 시작</span>
+          </button>
+          <button class="btn-logout" id="btn-logout-start">로그아웃</button>
+        </div>
+
+        <div class="start-divider"></div>
+
+        <button class="btn-leaderboard" id="btn-leaderboard-start">
+          <span>🏆</span>
+          <span>명예의 전당</span>
+        </button>
+
+        <div class="best-record">
+          <span>🥇 최고 기록</span>
+          <span><span class="wave" id="best-record-wave">0</span> 웨이브</span>
+        </div>
       </div>
     </div>
+
+    <!-- Leaderboard Modal -->
+    <div id="leaderboard-modal">
+      <div class="leaderboard-panel">
+        <div class="leaderboard-title">🏆 명예의 전당</div>
+
+        <div class="local-best-card">
+          <div class="label">내 최고 기록</div>
+          <div class="wave-num" id="leaderboard-wave">0</div>
+          <div class="wave-label">WAVE</div>
+        </div>
+
+        <div class="coming-soon">
+          <span class="emoji">🌍</span>
+          글로벌 랭킹은 곧 제공됩니다!<br />
+          <span style="opacity:0.7">(Firestore 연동 예정)</span>
+        </div>
+
+        <button class="leaderboard-close-btn" id="btn-leaderboard-close">닫기</button>
+      </div>
+    </div>
+
+    <!-- Rotate hint -->
     <div id="rotate-hint" role="alert">
       <div class="icon">📱</div>
       <h2>가로 모드로 플레이해주세요</h2>
       <p>기기를 옆으로 돌리면<br />게임이 화면에 꽉 채워집니다</p>
     </div>
+
     <script type="module" src="/src/main.ts"></script>
+
     <script type="module">
       import { signInWithGoogle, signOut, onAuthChange } from '/src/lib/firebase.ts';
-      const btn = document.getElementById('auth-btn');
-      const menu = document.getElementById('auth-menu');
-      const logoutBtn = document.getElementById('logout-btn');
-      const labelText = btn.querySelector('.label-text');
-      const gIcon = btn.querySelector('.g-icon');
-      let currentUser = null;
+
+      const overlay = document.getElementById('start-overlay');
+      const loggedOut = document.getElementById('start-logged-out');
+      const loggedIn = document.getElementById('start-logged-in');
+      const userImg = document.getElementById('start-user-img');
+      const userName = document.getElementById('start-user-name');
+      const bestRecordWave = document.getElementById('best-record-wave');
+      const leaderboardModal = document.getElementById('leaderboard-modal');
+      const leaderboardWave = document.getElementById('leaderboard-wave');
+
+      function refreshBest() {
+        const best = parseInt(localStorage.getItem('porande-best-wave') || '0', 10);
+        bestRecordWave.textContent = best;
+        leaderboardWave.textContent = best;
+      }
+      refreshBest();
 
       onAuthChange((user) => {
-        currentUser = user;
         if (user) {
-          labelText.textContent = user.displayName || '사용자';
-          gIcon.style.display = 'none';
-          // 프로필 이미지
-          let img = btn.querySelector('img');
-          if (!img) {
-            img = document.createElement('img');
-            btn.querySelector('.auth-label').insertBefore(img, labelText);
-          }
-          if (user.photoURL) img.src = user.photoURL;
+          loggedOut.style.display = 'none';
+          loggedIn.style.display = 'block';
+          userName.textContent = user.displayName || '사용자';
+          if (user.photoURL) userImg.src = user.photoURL;
         } else {
-          labelText.textContent = '로그인';
-          gIcon.style.display = 'inline-block';
-          const img = btn.querySelector('img');
-          if (img) img.remove();
+          loggedOut.style.display = 'block';
+          loggedIn.style.display = 'none';
         }
       });
 
-      btn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        if (currentUser) {
-          menu.classList.toggle('open');
-        } else {
-          await signInWithGoogle();
-        }
+      document.getElementById('btn-google-start').addEventListener('click', async () => {
+        await signInWithGoogle();
       });
-      logoutBtn.addEventListener('click', async () => {
-        menu.classList.remove('open');
+
+      document.getElementById('btn-guest-start').addEventListener('click', () => {
+        overlay.classList.add('hidden');
+      });
+
+      document.getElementById('btn-play-start').addEventListener('click', () => {
+        overlay.classList.add('hidden');
+      });
+
+      document.getElementById('btn-logout-start').addEventListener('click', async () => {
         await signOut();
       });
-      document.addEventListener('click', (e) => {
-        if (!menu.contains(e.target) && !btn.contains(e.target)) {
-          menu.classList.remove('open');
+
+      document.getElementById('btn-leaderboard-start').addEventListener('click', () => {
+        refreshBest();
+        leaderboardModal.classList.add('open');
+      });
+
+      document.getElementById('btn-leaderboard-close').addEventListener('click', () => {
+        leaderboardModal.classList.remove('open');
+      });
+
+      leaderboardModal.addEventListener('click', (e) => {
+        if (e.target === leaderboardModal) {
+          leaderboardModal.classList.remove('open');
         }
       });
     </script>
