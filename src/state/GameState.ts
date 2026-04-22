@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 
 const DEX_STORAGE_KEY = 'porande-dex';
 const BEST_WAVE_STORAGE_KEY = 'porande-best-wave';
+const ACHIEVEMENTS_STORAGE_KEY = 'porande-achievements';
+const SYNERGY_SEEN_STORAGE_KEY = 'porande-synergy-seen';
 
 export class GameState extends Phaser.Events.EventEmitter {
   private _gold: number;
@@ -13,6 +15,8 @@ export class GameState extends Phaser.Events.EventEmitter {
   private _dex: Set<number> = new Set();
   private _bestWave = 0;
   private _milestone50Fired = false;
+  private _achievements: Set<string> = new Set();
+  private _synergySeen: Set<string> = new Set(); // synergy-all 업적용
 
   constructor(opts: { gold: number; lives: number; maxWave: number; unlockedCols: number }) {
     super();
@@ -23,6 +27,49 @@ export class GameState extends Phaser.Events.EventEmitter {
     this._unlockedCols = opts.unlockedCols;
     this.loadDex();
     this.loadBestWave();
+    this.loadAchievements();
+  }
+
+  private loadAchievements() {
+    try {
+      const a = localStorage.getItem(ACHIEVEMENTS_STORAGE_KEY);
+      if (a) this._achievements = new Set(JSON.parse(a) as string[]);
+      const s = localStorage.getItem(SYNERGY_SEEN_STORAGE_KEY);
+      if (s) this._synergySeen = new Set(JSON.parse(s) as string[]);
+    } catch { /* ignore */ }
+  }
+
+  private saveAchievements() {
+    try {
+      localStorage.setItem(ACHIEVEMENTS_STORAGE_KEY, JSON.stringify([...this._achievements]));
+      localStorage.setItem(SYNERGY_SEEN_STORAGE_KEY, JSON.stringify([...this._synergySeen]));
+    } catch { /* ignore */ }
+  }
+
+  hasAchievement(id: string): boolean {
+    return this._achievements.has(id);
+  }
+
+  get achievements(): ReadonlySet<string> {
+    return this._achievements;
+  }
+
+  get synergySeen(): ReadonlySet<string> {
+    return this._synergySeen;
+  }
+
+  markSynergySeen(id: string) {
+    if (this._synergySeen.has(id)) return;
+    this._synergySeen.add(id);
+    this.saveAchievements();
+  }
+
+  unlockAchievement(id: string): boolean {
+    if (this._achievements.has(id)) return false;
+    this._achievements.add(id);
+    this.saveAchievements();
+    this.emit('achievementUnlocked', id);
+    return true;
   }
 
   private loadBestWave() {

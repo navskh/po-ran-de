@@ -156,6 +156,9 @@ export class WaveSystem {
       // 보스 골드는 wave 비례: 80 + wave*12
       const baseGold = enemy.isBoss ? (80 + this.state.wave * 12) : ENEMY_KILL_GOLD;
       this.state.addGold(Math.max(1, Math.floor(baseGold * goldMult)));
+      if (enemy.isBoss) {
+        this.scene.events.emit('bossKilled');
+      }
       enemy.destroy();
     }
   }
